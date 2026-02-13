@@ -1,16 +1,78 @@
-# React + Vite
+# Risk Zone
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Risk Zone is a fast arcade survival game built with React and the HTML5 Canvas API.
+You control a single player orb, avoid incoming hazards, and survive as long as possible while the game ramps difficulty over time.
 
-Currently, two official plugins are available:
+## Gameplay 🎮
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Hazards spawn from outside the arena and move inward toward the player.
+- Survival time increases score (`+1` point per second alive).
+- Difficulty ramps automatically over time.
+- Hazard movement speed increases over time.
+- Hazard spawn interval decreases over time.
+- High score is persisted in browser `localStorage`.
 
-## React Compiler
+## Controls 🕹️
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Move: `W A S D` or Arrow Keys
+- Dash: `Shift` (short burst in current movement direction, with cooldown)
+- Start / Restart: `Space` or `Enter`
 
-## Expanding the ESLint configuration
+## Tech Stack ⚙️
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- React 19
+- Vite 7
+- Canvas 2D rendering
+- ESLint 9
+
+## Run Locally 🚀
+
+Requirements:
+- Node.js 18+ (recommended: latest LTS)
+- npm
+
+Install and run:
+
+```bash
+npm install
+npm run dev
+```
+
+Build for production:
+
+```bash
+npm run build
+```
+
+Preview production build:
+
+```bash
+npm run preview
+```
+
+Lint:
+
+```bash
+npm run lint
+```
+
+## Project Structure 🧱
+
+```text
+src/
+  components/
+    GameCanvas.jsx      # Canvas renderer (arena, hazards, player, effects)
+    HUD.jsx             # Score and difficulty readout
+    Overlay.jsx         # Ready/Game over overlays
+  game/
+    constants.js        # Tunable gameplay constants
+    engine.js           # Core simulation (movement, spawn, collision, scoring)
+    useGameEngine.js    # Input + requestAnimationFrame loop hook
+  App.jsx               # Main game composition
+```
+
+## Notes 🧠
+
+- Arena size is fixed at `900 x 540` world units and scales responsively in the UI.
+- Game loop uses `requestAnimationFrame` with a capped delta time for stable updates.
+- Difficulty tuning values live in `src/game/constants.js`.
