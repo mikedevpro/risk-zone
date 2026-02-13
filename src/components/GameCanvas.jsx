@@ -59,6 +59,22 @@ if (state.player._dashLeft > 0) {
   ctx.globalAlpha = 1;
 }
 
+        // coins
+    ctx.fillStyle = "#ffd54a";
+    for (const c of state.coins) {
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+      ctx.fill();
+
+      // little shine
+      ctx.globalAlpha = 0.35;
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(c.x - c.r * 0.25, c.y - c.r * 0.25, c.r * 0.35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = "#ffd54a";
+    }
 
     // player
     const p = state.player;

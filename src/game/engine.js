@@ -11,6 +11,10 @@ import {
   DIFFICULTY_RAMP_EVERY,
   SPEED_RAMP_MULT,
   SPAWN_RAMP_MULT,
+  COIN_RADIUS,
+  COIN_SCORE,
+  COIN_SPAWN_EVERY,
+  COIN_MAX,
 } from "./constants";
 
 export function clamp(v, min, max) {
@@ -61,6 +65,8 @@ export function makeInitialState() {
     },
 
     hazards: [],
+    coins: [],
+    _coinTimer: 0,
   };
 }
 
@@ -114,6 +120,50 @@ function spawnHazard(state) {
   });
 }
 
+function spawnCoin(state) {
+  for (let attempt = 0; attempt < 12; attempt++) {
+    let x = rand(COIN_RADIUS, CANVAS_W - COIN_RADIUS);
+    let y = rand(COIN_RADIUS, CANVAS_H - COIN_RADIUS);
+
+    // Risk bias: half the time, spawn near a random hazard (if any)
+    if (state.hazards.length > 0 && Math.random() < 0.5) {
+      const h = state.hazards[Math.floor(rand(0, state.hazards.length))];
+      const angle = rand(0, Math.PI * 2);
+      const d = rand(h.r + 26, h.r + 90);
+      x = clamp(h.x + Math.cos(angle) * d, COIN_RADIUS, CANVAS_W - COIN_RADIUS);
+      y = clamp(h.y + Math.sin(angle) * d, COIN_RADIUS, CANVAS_H - COIN_RADIUS);
+    }
+
+    const coin = { x, y, r: COIN_RADIUS };
+
+    // Don’t spawn on player
+    if (circleHit(state.player, coin)) continue;
+
+    // Don’t spawn overlapping a hazard
+    let overlapsHazard = false;
+    for (const hz of state.hazards) {
+      if (circleHit(hz, coin)) {
+        overlapsHazard = true;
+        break;
+      }
+    }
+    if (overlapsHazard) continue;
+
+    // Don’t spawn on another coin
+    let overlapsCoin = false;
+    for (const c of state.coins) {
+      if (circleHit(c, coin)) {
+        overlapsCoin = true;
+        break;
+      }
+    }
+    if (overlapsCoin) continue;
+
+    state.coins.push(coin);
+    return;
+  }
+}
+
 export function startGame(state) {
   const next = makeInitialState();
   next.status = "playing";
@@ -144,6 +194,13 @@ export function step(state, input, dt) {
   while (state._spawnTimer >= state.hazardSpawnEvery) {
     state._spawnTimer -= state.hazardSpawnEvery;
     spawnHazard(state);
+  }
+
+  // spawn coins
+  state._coinTimer += dt;
+  while (state._coinTimer >= COIN_SPAWN_EVERY) {
+    state._coinTimer -= COIN_SPAWN_EVERY;
+    if (state.coins.length < COIN_MAX) spawnCoin(state);
   }
 
   // move player
@@ -197,6 +254,14 @@ export function step(state, input, dt) {
   state.hazards = state.hazards.filter(
     (h) => h.x > -120 && h.x < CANVAS_W + 120 && h.y > -120 && h.y < CANVAS_H + 120
   );
+
+  // collect coins
+  for (let i = state.coins.length - 1; i >= 0; i--) {
+    if (circleHit(p, state.coins[i])) {
+      state.coins.splice(i, 1);
+      state.score += COIN_SCORE;
+    }
+  }
 
   // collisions
   for (const h of state.hazards) {

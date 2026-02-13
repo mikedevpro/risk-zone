@@ -14,3 +14,9 @@ export const HAZARD_SPAWN_MIN = 0.35; // seconds
 export const DIFFICULTY_RAMP_EVERY = 6.0; // seconds
 export const SPEED_RAMP_MULT = 1.08; // hazard speed multiplier per ramp
 export const SPAWN_RAMP_MULT = 0.90; // spawn interval multiplier per ramp
+
+export const COIN_RADIUS = 9;
+export const COIN_SCORE = 10;
+
+export const COIN_SPAWN_EVERY = 1.25; // seconds
+export const COIN_MAX = 3;

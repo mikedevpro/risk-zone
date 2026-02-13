@@ -3,6 +3,7 @@ export default function HUD({ state }) {
 
   return (
     <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
+      <Pill label="Coins" value={state.coins.length} />
       <Pill label="Score" value={score} />
       <Pill label="High" value={state.highScore} />
       <Pill label="Spawn" value={`${state.hazardSpawnEvery.toFixed(2)}s`} />
