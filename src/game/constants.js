@@ -20,3 +20,8 @@ export const COIN_SCORE = 10;
 
 export const COIN_SPAWN_EVERY = 1.25; // seconds
 export const COIN_MAX = 3;
+
+export const STREAK_WINDOW = 2.5; // seconds to keep streak alive
+export const STREAK_BONUS_STEP = 5; // extra points per streak level
+export const STREAK_BONUS_CAP = 15; // max bonus points (so coin max = 10 + 15 = 25)
+

@@ -15,6 +15,9 @@ import {
   COIN_SCORE,
   COIN_SPAWN_EVERY,
   COIN_MAX,
+  STREAK_WINDOW,
+  STREAK_BONUS_STEP,
+  STREAK_BONUS_CAP,
 } from "./constants";
 
 export function clamp(v, min, max) {
@@ -67,6 +70,10 @@ export function makeInitialState() {
     hazards: [],
     coins: [],
     _coinTimer: 0,
+
+    popups: [],
+    coinStreak: 0,
+    _streakTimer: 0,
   };
 }
 
@@ -164,6 +171,16 @@ function spawnCoin(state) {
   }
 }
 
+function addPopup(state, x, y, text) {
+  state.popups.push({
+    x,
+    y,
+    text,
+    life: 0.75,   // seconds remaining
+    vy: -40,      // float upward px/sec
+  });
+}
+
 export function startGame(state) {
   const next = makeInitialState();
   next.status = "playing";
@@ -201,6 +218,15 @@ export function step(state, input, dt) {
   while (state._coinTimer >= COIN_SPAWN_EVERY) {
     state._coinTimer -= COIN_SPAWN_EVERY;
     if (state.coins.length < COIN_MAX) spawnCoin(state);
+  }
+
+  // streak timer (resets streak if you wait too long)
+  if (state.coinStreak > 0) {
+    state._streakTimer += dt;
+    if (state._streakTimer > STREAK_WINDOW) {
+      state.coinStreak = 0;
+      state._streakTimer = 0;
+    }
   }
 
   // move player
@@ -255,13 +281,34 @@ export function step(state, input, dt) {
     (h) => h.x > -120 && h.x < CANVAS_W + 120 && h.y > -120 && h.y < CANVAS_H + 120
   );
 
-  // collect coins
+    // collect coins (streak scoring)
   for (let i = state.coins.length - 1; i >= 0; i--) {
-    if (circleHit(p, state.coins[i])) {
+    const c = state.coins[i];
+    if (circleHit(p, c)) {
       state.coins.splice(i, 1);
-      state.score += COIN_SCORE;
+
+      // streak logic
+      state.coinStreak += 1;
+      state._streakTimer = 0;
+
+      const bonus = Math.min(
+        STREAK_BONUS_CAP,
+        (state.coinStreak - 1) * STREAK_BONUS_STEP
+      );
+
+      const earned = COIN_SCORE + bonus;
+      state.score += earned;
+
+      addPopup(state, c.x, c.y, `+${earned}`);
     }
   }
+
+    // update popups
+  for (const pz of state.popups) {
+    pz.y += pz.vy * dt;
+    pz.life -= dt;
+  }
+  state.popups = state.popups.filter((pz) => pz.life > 0);
 
   // collisions
   for (const h of state.hazards) {

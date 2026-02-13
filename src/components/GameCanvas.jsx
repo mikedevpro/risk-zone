@@ -43,23 +43,25 @@ export default function GameCanvas({ state }) {
       ctx.fill();
     }
 
-    // dash trail
-if (state.player._dashLeft > 0) {
-  ctx.globalAlpha = 0.4;
-  ctx.fillStyle = "#44d7b6";
-  ctx.beginPath();
-  ctx.arc(
-    state.player.x - state.player._dashDir.x * 14,
-    state.player.y - state.player._dashDir.y * 14,
-    state.player.r + 4,
-    0,
-    Math.PI * 2
-  );
-  ctx.fill();
-  ctx.globalAlpha = 1;
-}
+    const p = state.player;
 
-        // coins
+    // dash trail
+    if (p._dashLeft > 0) {
+      ctx.globalAlpha = 0.4;
+      ctx.fillStyle = "#44d7b6";
+      ctx.beginPath();
+      ctx.arc(
+        p.x - p._dashDir.x * 14,
+        p.y - p._dashDir.y * 14,
+        p.r + 4,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    // coins
     ctx.fillStyle = "#ffd54a";
     for (const c of state.coins) {
       ctx.beginPath();
@@ -76,8 +78,38 @@ if (state.player._dashLeft > 0) {
       ctx.fillStyle = "#ffd54a";
     }
 
+    // popups
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "700 16px ui-sans-serif, system-ui";
+    for (const pz of state.popups) {
+      const alpha = Math.max(0, Math.min(1, pz.life / 0.75));
+      ctx.globalAlpha = alpha;
+
+      // subtle shadow
+      ctx.fillStyle = "rgba(0,0,0,0.55)";
+      ctx.fillText(pz.text, pz.x + 1, pz.y + 1);
+
+      // main text
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(pz.text, pz.x, pz.y);
+    }
+    ctx.globalAlpha = 1;
+
+    // streak glow (intensifies with streak)
+    const streak = state.coinStreak || 0;
+    if (streak > 0) {
+      const glow = Math.min(20, 6 + streak * 3); // cap glow
+      ctx.save();
+      ctx.globalAlpha = 0.18 + Math.min(0.35, streak * 0.06);
+      ctx.fillStyle = "#44d7b6";
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r + glow, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
     // player
-    const p = state.player;
     ctx.fillStyle = "#44d7b6";
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);

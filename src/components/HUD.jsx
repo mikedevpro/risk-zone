@@ -1,8 +1,13 @@
+import { STREAK_WINDOW } from "../game/constants";
+
 export default function HUD({ state }) {
   const score = state.status === "playing" ? Math.floor(state.score) : state.score;
+  const streakRemaining = Math.max(0, STREAK_WINDOW - state._streakTimer);
 
   return (
     <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
+      <Pill label="Streak Window" value={`${streakRemaining.toFixed(1)}s`} />
+      <Pill label="Streak" value={state.coinStreak} />
       <Pill label="Coins" value={state.coins.length} />
       <Pill label="Score" value={score} />
       <Pill label="High" value={state.highScore} />
