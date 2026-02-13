@@ -1,0 +1,16 @@
+export const CANVAS_W = 900;
+export const CANVAS_H = 540;
+
+export const PLAYER_RADIUS = 12;
+export const PLAYER_SPEED = 340; // px/sec
+
+export const HAZARD_RADIUS_MIN = 10;
+export const HAZARD_RADIUS_MAX = 22;
+
+export const HAZARD_BASE_SPEED = 160; // px/sec
+export const HAZARD_SPAWN_START = 1.05; // seconds
+export const HAZARD_SPAWN_MIN = 0.35; // seconds
+
+export const DIFFICULTY_RAMP_EVERY = 6.0; // seconds
+export const SPEED_RAMP_MULT = 1.08; // hazard speed multiplier per ramp
+export const SPAWN_RAMP_MULT = 0.90; // spawn interval multiplier per ramp

@@ -1,0 +1,221 @@
+import {
+  CANVAS_W,
+  CANVAS_H,
+  PLAYER_RADIUS,
+  PLAYER_SPEED,
+  HAZARD_RADIUS_MIN,
+  HAZARD_RADIUS_MAX,
+  HAZARD_BASE_SPEED,
+  HAZARD_SPAWN_START,
+  HAZARD_SPAWN_MIN,
+  DIFFICULTY_RAMP_EVERY,
+  SPEED_RAMP_MULT,
+  SPAWN_RAMP_MULT,
+} from "./constants";
+
+export function clamp(v, min, max) {
+  return Math.max(min, Math.min(max, v));
+}
+
+export function rand(min, max) {
+  return min + Math.random() * (max - min);
+}
+
+export function dist2(ax, ay, bx, by) {
+  const dx = ax - bx;
+  const dy = ay - by;
+  return dx * dx + dy * dy;
+}
+
+export function circleHit(a, b) {
+  const r = a.r + b.r;
+  return dist2(a.x, a.y, b.x, b.y) <= r * r;
+}
+
+export function makeInitialState() {
+  return {
+    status: "ready", // ready | playing | gameover
+    timeAlive: 0,
+    score: 0,
+    highScore: Number(localStorage.getItem("riskzone_highscore") || 0),
+
+    // difficulty
+    hazardSpeedMult: 1,
+    hazardSpawnEvery: HAZARD_SPAWN_START,
+    _spawnTimer: 0,
+    _rampTimer: 0,
+
+    player: {
+      x: CANVAS_W / 2,
+      y: CANVAS_H / 2,
+      r: PLAYER_RADIUS,
+      speed: PLAYER_SPEED,
+
+      dashSpeed: 900,
+      dashTime: 0.12,
+      dashCooldown: 0.6,
+
+      _dashLeft: 0,
+      _dashCdLeft: 0,
+      _dashDir: { x: 0, y: 0 },
+    },
+
+    hazards: [],
+  };
+}
+
+function spawnHazard(state) {
+  // Spawn just outside one edge and move inward with slight angle variance
+  const r = rand(HAZARD_RADIUS_MIN, HAZARD_RADIUS_MAX);
+
+  const edge = Math.floor(rand(0, 4)); // 0 top, 1 right, 2 bottom, 3 left
+  let x, y;
+
+  if (edge === 0) {
+    x = rand(0, CANVAS_W);
+    y = -r - 4;
+  } else if (edge === 1) {
+    x = CANVAS_W + r + 4;
+    y = rand(0, CANVAS_H);
+  } else if (edge === 2) {
+    x = rand(0, CANVAS_W);
+    y = CANVAS_H + r + 4;
+  } else {
+    x = -r - 4;
+    y = rand(0, CANVAS_H);
+  }
+
+  // Aim generally toward player, with a bit of randomness so it feels “alive”
+  const px = state.player.x;
+  const py = state.player.y;
+
+  let dx = px - x;
+  let dy = py - y;
+
+  const len = Math.hypot(dx, dy) || 1;
+  dx /= len;
+  dy /= len;
+
+  // Angle jitter
+  const jitter = rand(-0.35, 0.35);
+  const cos = Math.cos(jitter);
+  const sin = Math.sin(jitter);
+  const jx = dx * cos - dy * sin;
+  const jy = dx * sin + dy * cos;
+
+  const speed = HAZARD_BASE_SPEED * state.hazardSpeedMult * rand(0.9, 1.1);
+
+  state.hazards.push({
+    x,
+    y,
+    r,
+    vx: jx * speed,
+    vy: jy * speed,
+  });
+}
+
+export function startGame(state) {
+  const next = makeInitialState();
+  next.status = "playing";
+  next.highScore = state.highScore ?? next.highScore;
+  return next;
+}
+
+export function step(state, input, dt) {
+  if (state.status !== "playing") return state;
+
+  // timers
+  state.timeAlive += dt;
+  state.score += dt; // +1 per sec alive
+  state._spawnTimer += dt;
+  state._rampTimer += dt;
+
+  // difficulty ramp
+  if (state._rampTimer >= DIFFICULTY_RAMP_EVERY) {
+    state._rampTimer = 0;
+    state.hazardSpeedMult *= SPEED_RAMP_MULT;
+    state.hazardSpawnEvery = Math.max(
+      HAZARD_SPAWN_MIN,
+      state.hazardSpawnEvery * SPAWN_RAMP_MULT
+    );
+  }
+
+  // spawn hazards
+  while (state._spawnTimer >= state.hazardSpawnEvery) {
+    state._spawnTimer -= state.hazardSpawnEvery;
+    spawnHazard(state);
+  }
+
+  // move player
+  const p = state.player;
+  let ix = 0;
+  let iy = 0;
+
+  if (input.left) ix -= 1;
+  if (input.right) ix += 1;
+  if (input.up) iy -= 1;
+  if (input.down) iy += 1;
+
+  // normalize diagonal
+  if (ix !== 0 || iy !== 0) {
+    const l = Math.hypot(ix, iy) || 1;
+    ix /= l;
+    iy /= l;
+  }
+
+  // DASH timers
+  p._dashCdLeft = Math.max(0, p._dashCdLeft - dt);
+  p._dashLeft = Math.max(0, p._dashLeft - dt);
+
+  // Start dash (only if moving)
+  if (input.dash && p._dashCdLeft === 0 && (ix !== 0 || iy !== 0)) {
+    p._dashLeft = p.dashTime;
+    p._dashCdLeft = p.dashCooldown;
+    p._dashDir = { x: ix, y: iy };
+  }
+
+  // Move player
+  if (p._dashLeft > 0) {
+    p.x += p._dashDir.x * p.dashSpeed * dt;
+    p.y += p._dashDir.y * p.dashSpeed * dt;
+  } else {
+    p.x += ix * p.speed * dt;
+    p.y += iy * p.speed * dt;
+  }
+
+  // clamp to arena
+  p.x = clamp(p.x, p.r, CANVAS_W - p.r);
+  p.y = clamp(p.y, p.r, CANVAS_H - p.r);
+
+  // move hazards
+  for (const h of state.hazards) {
+    h.x += h.vx * dt;
+    h.y += h.vy * dt;
+  }
+
+  // cull hazards that are far out
+  state.hazards = state.hazards.filter(
+    (h) => h.x > -120 && h.x < CANVAS_W + 120 && h.y > -120 && h.y < CANVAS_H + 120
+  );
+
+  // collisions
+  for (const h of state.hazards) {
+    if (circleHit(p, h)) {
+      const finalScore = Math.floor(state.score);
+      const newHigh = Math.max(state.highScore, finalScore);
+
+      if (newHigh !== state.highScore) {
+        localStorage.setItem("riskzone_highscore", String(newHigh));
+      }
+
+      return {
+        ...state,
+        status: "gameover",
+        score: finalScore,
+        highScore: newHigh,
+      };
+    }
+  }
+
+  return state;
+}
