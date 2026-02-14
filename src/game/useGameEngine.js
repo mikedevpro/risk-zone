@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { makeInitialState, startGame, step } from "./engine";
+import { unlockAudio } from "./sound";
 
 function makeInput() {
   return { up: false, down: false, left: false, right: false, dash: false };
@@ -14,7 +15,10 @@ export function useGameEngine() {
   const api = useMemo(() => {
     return {
       state,
-      start: () => setState((s) => startGame(s)),
+      start: () => {
+        void unlockAudio();
+        setState((s) => startGame(s));
+      },
       reset: () => setState(() => makeInitialState()),
       setInput: (patch) => {
         inputRef.current = { ...inputRef.current, ...patch };
@@ -25,6 +29,7 @@ export function useGameEngine() {
   useEffect(() => {
     function onKeyDown(e) {
       if (e.repeat) return;
+      void unlockAudio();
       const k = e.key.toLowerCase();
       if (k === "shift") inputRef.current.dash = true;
       if (k === "arrowup" || k === "w") inputRef.current.up = true;

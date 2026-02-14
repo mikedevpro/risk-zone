@@ -1,3 +1,5 @@
+import { playCoin, playDash, playGameOver } from "./sound";
+
 import {
   CANVAS_W,
   CANVAS_H,
@@ -39,12 +41,28 @@ export function circleHit(a, b) {
   return dist2(a.x, a.y, b.x, b.y) <= r * r;
 }
 
+function getSavedHighScore() {
+  try {
+    return Number(localStorage.getItem("riskzone_highscore") || 0);
+  } catch {
+    return 0;
+  }
+}
+
+function saveHighScore(score) {
+  try {
+    localStorage.setItem("riskzone_highscore", String(score));
+  } catch {
+    // Ignore persistence failures and keep in-memory score.
+  }
+}
+
 export function makeInitialState() {
   return {
     status: "ready", // ready | playing | gameover
     timeAlive: 0,
     score: 0,
-    highScore: Number(localStorage.getItem("riskzone_highscore") || 0),
+    highScore: getSavedHighScore(),
 
     // difficulty
     hazardSpeedMult: 1,
@@ -255,6 +273,7 @@ export function step(state, input, dt) {
     p._dashLeft = p.dashTime;
     p._dashCdLeft = p.dashCooldown;
     p._dashDir = { x: ix, y: iy };
+    playDash();
   }
 
   // Move player
@@ -290,6 +309,7 @@ export function step(state, input, dt) {
       // streak logic
       state.coinStreak += 1;
       state._streakTimer = 0;
+      playCoin(state.coinStreak);
 
       const bonus = Math.min(
         STREAK_BONUS_CAP,
@@ -317,8 +337,9 @@ export function step(state, input, dt) {
       const newHigh = Math.max(state.highScore, finalScore);
 
       if (newHigh !== state.highScore) {
-        localStorage.setItem("riskzone_highscore", String(newHigh));
+        saveHighScore(newHigh);
       }
+      playGameOver();
 
       return {
         ...state,
