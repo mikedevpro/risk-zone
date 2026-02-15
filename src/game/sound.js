@@ -1,4 +1,9 @@
 let ctx = null;
+let muted = false;
+
+export function setMuted(v) {
+  muted = !!v;
+}
 
 function getCtx() {
   if (typeof window === "undefined") return null;
@@ -21,6 +26,7 @@ export async function unlockAudio() {
 }
 
 function playTone(freq, duration = 0.08, type = "sine", volume = 0.15) {
+  if (muted) return;
   const audio = getCtx();
   if (!audio) return;
   if (audio.state === "suspended") {
@@ -58,6 +64,7 @@ export function playDash() {
 }
 
 export function playGameOver() {
+  if (muted) return;
   const audio = getCtx();
   if (!audio) return;
   if (audio.state === "suspended") {

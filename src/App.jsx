@@ -2,9 +2,11 @@ import GameCanvas from "./components/GameCanvas";
 import HUD from "./components/HUD";
 import Overlay from "./components/Overlay";
 import { useGameEngine } from "./game/useGameEngine";
+import TouchControls from "./components/TouchControls";
+
 
 export default function App() {
-  const { state, start } = useGameEngine();
+  const { state, start, toggleMute, togglePause, setInput } = useGameEngine();
 
   return (
     <div
@@ -14,6 +16,7 @@ export default function App() {
         display: "grid",
         placeItems: "center",
         padding: 18,
+        overscrollBehavior: "none",
       }}
     >
       <div style={{ width: "min(980px, 96vw)" }}>
@@ -25,27 +28,20 @@ export default function App() {
             </div>
           </div>
 
-          <button
-            onClick={start}
-            style={{
-              padding: "10px 14px",
-              borderRadius: 12,
-              border: "1px solid rgba(255,255,255,0.16)",
-              background: "rgba(255,255,255,0.08)",
-              color: "white",
-              fontWeight: 800,
-              cursor: "pointer",
-            }}
-          >
-            Start
-          </button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={start}>{state.status === "playing" ? "Restart" : "Start"}</button>
+            <button onClick={toggleMute}>{state.muted ? "Unmute" : "Mute"}</button>
+            {state.status === "playing" && (
+              <button onClick={togglePause}>{state.paused ? "Resume" : "Pause"}</button>
+            )}
+          </div>
         </div>
 
         <div style={{ marginTop: 14 }}>
           <HUD state={state} />
         </div>
 
-        <div style={{ position: "relative", marginTop: 14 }}>
+        <div style={{ position: "relative", marginTop: 14, touchAction: "none" }}>
           <GameCanvas state={state} />
 
           {state.status === "ready" && (
@@ -56,6 +52,10 @@ export default function App() {
             />
           )}
 
+          {state.status === "playing" && state.paused && (
+            <Overlay title="Paused" subtitle="Tap Resume or press P." cta="Stay sharp." />
+          )}
+
           {state.status === "gameover" && (
             <Overlay
               title="Game Over"
@@ -64,6 +64,8 @@ export default function App() {
             />
           )}
         </div>
+
+        <TouchControls setInput={(patch) => setInput(patch)} />
       </div>
     </div>
   );

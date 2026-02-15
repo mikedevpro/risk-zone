@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { makeInitialState, startGame, step } from "./engine";
 import { unlockAudio } from "./sound";
+import { setMuted } from "./sound";
 
 function makeInput() {
   return { up: false, down: false, left: false, right: false, dash: false };
@@ -19,12 +20,23 @@ export function useGameEngine() {
         void unlockAudio();
         setState((s) => startGame(s));
       },
+      togglePause: () => setState(s => (s.status === "playing" ? { ...s, paused: !s.paused } : s)),
+      toggleMute: () => setState(s => {
+        const next = !s.muted;
+        localStorage.setItem("riskzone_muted", JSON.stringify(next));
+        setMuted(next);
+        return { ...s, muted: next };
+      }),
       reset: () => setState(() => makeInitialState()),
       setInput: (patch) => {
         inputRef.current = { ...inputRef.current, ...patch };
       },
     };
   }, [state]);
+
+  useEffect(() => {
+    setMuted(state.muted);
+  }, [state.muted]);
 
   useEffect(() => {
     function onKeyDown(e) {
@@ -36,6 +48,9 @@ export function useGameEngine() {
       if (k === "arrowdown" || k === "s") inputRef.current.down = true;
       if (k === "arrowleft" || k === "a") inputRef.current.left = true;
       if (k === "arrowright" || k === "d") inputRef.current.right = true;
+      if (k === "p" && state.status === "playing") {
+        setState(s => ({ ...s, paused: !s.paused }));
+      }
 
       if ((k === " " || k === "enter") && (state.status === "ready" || state.status === "gameover")) {
         setState((s) => startGame(s));

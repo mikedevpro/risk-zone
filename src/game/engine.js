@@ -63,6 +63,8 @@ export function makeInitialState() {
     timeAlive: 0,
     score: 0,
     highScore: getSavedHighScore(),
+    timeScale: 1,
+    hitFlash: 0,
 
     // difficulty
     hazardSpeedMult: 1,
@@ -92,6 +94,9 @@ export function makeInitialState() {
     popups: [],
     coinStreak: 0,
     _streakTimer: 0,
+
+    paused: false,
+    muted: JSON.parse(localStorage.getItem("riskzone_muted") || "false"),
   };
 }
 
@@ -207,13 +212,23 @@ export function startGame(state) {
 }
 
 export function step(state, input, dt) {
-  if (state.status !== "playing") return state;
+  // allow flash/slowmo easing even after gameover
+  if (state.status !== "playing") {
+    state.hitFlash = Math.max(0, (state.hitFlash ?? 0) - dt * 3.5);
+    const ts = state.timeScale ?? 1;
+    state.timeScale = ts + (1 - ts) * Math.min(1, dt * 8);
+    return state;
+  }
+
+  const t = dt * (state.timeScale ?? 1);
+
+  if (state.paused) return state;
 
   // timers
-  state.timeAlive += dt;
-  state.score += dt; // +1 per sec alive
-  state._spawnTimer += dt;
-  state._rampTimer += dt;
+  state.timeAlive += t;
+  state.score += t; // +1 per sec alive
+  state._spawnTimer += t;
+  state._rampTimer += t;
 
   // difficulty ramp
   if (state._rampTimer >= DIFFICULTY_RAMP_EVERY) {
@@ -232,7 +247,7 @@ export function step(state, input, dt) {
   }
 
   // spawn coins
-  state._coinTimer += dt;
+  state._coinTimer += t;
   while (state._coinTimer >= COIN_SPAWN_EVERY) {
     state._coinTimer -= COIN_SPAWN_EVERY;
     if (state.coins.length < COIN_MAX) spawnCoin(state);
@@ -240,7 +255,7 @@ export function step(state, input, dt) {
 
   // streak timer (resets streak if you wait too long)
   if (state.coinStreak > 0) {
-    state._streakTimer += dt;
+    state._streakTimer += t;
     if (state._streakTimer > STREAK_WINDOW) {
       state.coinStreak = 0;
       state._streakTimer = 0;
@@ -265,8 +280,8 @@ export function step(state, input, dt) {
   }
 
   // DASH timers
-  p._dashCdLeft = Math.max(0, p._dashCdLeft - dt);
-  p._dashLeft = Math.max(0, p._dashLeft - dt);
+  p._dashCdLeft = Math.max(0, p._dashCdLeft - t);
+  p._dashLeft = Math.max(0, p._dashLeft - t);
 
   // Start dash (only if moving)
   if (input.dash && p._dashCdLeft === 0 && (ix !== 0 || iy !== 0)) {
@@ -278,11 +293,11 @@ export function step(state, input, dt) {
 
   // Move player
   if (p._dashLeft > 0) {
-    p.x += p._dashDir.x * p.dashSpeed * dt;
-    p.y += p._dashDir.y * p.dashSpeed * dt;
+    p.x += p._dashDir.x * p.dashSpeed * t;
+    p.y += p._dashDir.y * p.dashSpeed * t;
   } else {
-    p.x += ix * p.speed * dt;
-    p.y += iy * p.speed * dt;
+    p.x += ix * p.speed * t;
+    p.y += iy * p.speed * t;
   }
 
   // clamp to arena
@@ -291,8 +306,8 @@ export function step(state, input, dt) {
 
   // move hazards
   for (const h of state.hazards) {
-    h.x += h.vx * dt;
-    h.y += h.vy * dt;
+    h.x += h.vx * t;
+    h.y += h.vy * t;
   }
 
   // cull hazards that are far out
@@ -325,7 +340,7 @@ export function step(state, input, dt) {
 
     // update popups
   for (const pz of state.popups) {
-    pz.y += pz.vy * dt;
+    pz.y += pz.vy * t;
     pz.life -= dt;
   }
   state.popups = state.popups.filter((pz) => pz.life > 0);
@@ -340,6 +355,9 @@ export function step(state, input, dt) {
         saveHighScore(newHigh);
       }
       playGameOver();
+
+      state.timeScale = 0.25;
+      state.hitFlash = 1;
 
       return {
         ...state,

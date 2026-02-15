@@ -115,6 +115,15 @@ export default function GameCanvas({ state }) {
     ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
     ctx.fill();
 
+    // hit flash overlay
+    const flash = state.hitFlash || 0;
+    if (flash > 0) {
+      ctx.globalAlpha = Math.min(0.55, flash * 0.55);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+      ctx.globalAlpha = 1;
+    }
+
     // outline
     ctx.strokeStyle = "rgba(255,255,255,0.35)";
     ctx.lineWidth = 2;
@@ -123,6 +132,7 @@ export default function GameCanvas({ state }) {
     ctx.stroke();
   }, [state]);
 
+    
   return (
     <canvas
       ref={canvasRef}
@@ -131,6 +141,8 @@ export default function GameCanvas({ state }) {
       style={{
         width: "100%",
         maxWidth: CANVAS_W,
+        touchAction: "none",
+        userSelect: "none",
         borderRadius: 16,
         border: "1px solid rgba(255,255,255,0.12)",
         boxShadow: "0 10px 30px rgba(0,0,0,0.35)",
