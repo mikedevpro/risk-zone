@@ -141,12 +141,13 @@ export default function GameCanvas({ state }) {
       style={{
         width: "100%",
         maxWidth: CANVAS_W,
-        touchAction: "none",
-        userSelect: "none",
+        height: "auto",
+        aspectRatio: `${CANVAS_W} / ${CANVAS_H}`,
         borderRadius: 16,
         border: "1px solid rgba(255,255,255,0.12)",
         boxShadow: "0 10px 30px rgba(0,0,0,0.35)",
         display: "block",
+        touchAction: "none",
       }}
     />
   );

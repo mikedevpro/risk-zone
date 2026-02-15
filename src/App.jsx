@@ -7,6 +7,26 @@ import TouchControls from "./components/TouchControls";
 
 export default function App() {
   const { state, start, toggleMute, togglePause, setInput } = useGameEngine();
+  const btnStyle = {
+    height: 36,
+    padding: "0 12px",
+    borderRadius: 10,
+    border: "1px solid rgba(255,255,255,0.16)",
+    background: "rgba(255,255,255,0.08)",
+    color: "white",
+    fontWeight: 800,
+    cursor: "pointer",
+    lineHeight: "36px",       // <- key: consistent vertical alignment
+    display: "inline-flex",   // <- key
+    alignItems: "center",     // <- key
+    justifyContent: "center", // <- key
+  };
+
+  const btnPrimary = {
+    ...btnStyle,
+    background: "rgba(255,255,255,0.14)",
+    border: "1px solid rgba(255,255,255,0.22)",
+  };
 
   return (
     <div
@@ -15,7 +35,7 @@ export default function App() {
         background: "radial-gradient(1200px 600px at 20% 10%, #162c5a 0%, #070b14 55%, #05060a 100%)",
         display: "grid",
         placeItems: "center",
-        padding: 18,
+        padding: "clamp(12px, 3vw, 20px)",
         overscrollBehavior: "none",
       }}
     >
@@ -28,12 +48,14 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={start}>{state.status === "playing" ? "Restart" : "Start"}</button>
-            <button onClick={toggleMute}>{state.muted ? "Unmute" : "Mute"}</button>
-            {state.status === "playing" && (
-              <button onClick={togglePause}>{state.paused ? "Resume" : "Pause"}</button>
-            )}
+          <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
+            <button onClick={start} style={btnPrimary}>
+              {state.status === "playing" ? "Restart" : "Start"}
+            </button>
+
+            <button onClick={toggleMute} style={btnStyle}>
+              {state.muted ? "Unmute" : "Mute"}
+            </button>
           </div>
         </div>
 
@@ -66,6 +88,16 @@ export default function App() {
         </div>
 
         <TouchControls setInput={(patch) => setInput(patch)} />
+
+        <div style={{
+          marginTop: 12,
+          opacity: 0.5,
+          fontSize: 12,
+          textAlign: "center",
+          color: "white"
+        }}>
+          Built with React + Canvas · Risk Zone
+        </div>
       </div>
     </div>
   );
