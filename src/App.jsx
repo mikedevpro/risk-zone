@@ -20,6 +20,8 @@ export default function App() {
     display: "inline-flex",   // <- key
     alignItems: "center",     // <- key
     justifyContent: "center", // <- key
+    whiteSpace: "nowrap",
+    fontFamily: "inherit",
   };
 
   const btnPrimary = {
@@ -52,6 +54,12 @@ export default function App() {
             <button onClick={start} style={btnPrimary}>
               {state.status === "playing" ? "Restart" : "Start"}
             </button>
+
+            {state.status === "playing" && (
+              <button onClick={togglePause} style={btnStyle}>
+                {state.paused ? "Resume" : "Pause"}
+              </button>
+            )}
 
             <button onClick={toggleMute} style={btnStyle}>
               {state.muted ? "Unmute" : "Mute"}
