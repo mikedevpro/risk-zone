@@ -1,5 +1,9 @@
 export const CANVAS_W = 900;
 export const CANVAS_H = 540;
+export const WORLD_W = CANVAS_W * 2;
+export const WORLD_H = CANVAS_H * 2;
+export const STAR_COUNT = 140;
+export const STAR_PARALLAX = 0.35; // 0..1 (smaller = slower)
 
 export const PLAYER_RADIUS = 12;
 export const PLAYER_SPEED = 340; // px/sec
@@ -40,3 +44,15 @@ export const BOSS_RADIUS = 48;
 export const BOSS_SPEED = 120;
 export const BOSS_HEALTH = 20;
 export const BOSS_REWARD = 250;
+
+export const CHARGER_UNLOCK_LEVEL = 3;   // starts appearing at level 3+
+export const CHARGER_CHANCE = 0.22;      // probability when unlocked
+export const CHARGER_ARM_TIME = 0.45;    // seconds of tracking/telegraph
+export const CHARGER_SPEED_MULT = 2.6;   // how fast the lunge is vs normal
+
+export const SPIRAL_UNLOCK_LEVEL = 6;
+export const SPIRAL_CHANCE = 0.18;
+export const SPIRAL_TURN_RATE = 1.35; // radians/sec (try 1.0–1.8)
+
+export const START_LIVES = 2;     // try 2 or 3
+export const IFRAME_TIME = 1.1;  // seconds of invulnerability after hit

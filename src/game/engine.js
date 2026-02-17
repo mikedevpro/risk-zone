@@ -1,10 +1,12 @@
-import { playCoin, playDash, playGameOver } from "./sound";
-import { saveRun, loadLeaderboard } from "./leaderboard";
+import { playCoin, playDash } from "./sound";
+import { loadLeaderboard } from "./leaderboard";
 import { CHARACTERS } from "./characters";
 
 import {
   CANVAS_W,
   CANVAS_H,
+  WORLD_W,
+  WORLD_H,
   PLAYER_RADIUS,
   PLAYER_SPEED,
   HAZARD_RADIUS_MIN,
@@ -34,6 +36,15 @@ import {
   BOSS_HEALTH,
   BOSS_SPEED,
   BOSS_REWARD,
+  CHARGER_UNLOCK_LEVEL,
+  CHARGER_CHANCE,
+  CHARGER_ARM_TIME,
+  CHARGER_SPEED_MULT,
+  SPIRAL_UNLOCK_LEVEL,
+  SPIRAL_CHANCE,
+  SPIRAL_TURN_RATE,
+  START_LIVES,
+  IFRAME_TIME,
 } from "./constants";
 
 export function clamp(v, min, max) {
@@ -63,14 +74,6 @@ function getSavedHighScore() {
   }
 }
 
-function saveHighScore(score) {
-  try {
-    localStorage.setItem("riskzone_highscore", String(score));
-  } catch {
-    // Ignore persistence failures and keep in-memory score.
-  }
-}
-
 export function makeInitialState() {
   const state = {
     status: "ready", // ready | playing | gameover
@@ -80,7 +83,10 @@ export function makeInitialState() {
     characterId: localStorage.getItem("riskzone_char") || "skater",
     timeScale: 1,
     hitFlash: 0,
+    screenShake: 0,
     nearMisses: 0,
+    lives: START_LIVES,
+    _iframes: 0,
 
     // difficulty
     hazardSpeedMult: 1,
@@ -164,29 +170,46 @@ function spawnHazard(state) {
   const jy = dx * sin + dy * cos;
 
   const speed = HAZARD_BASE_SPEED * state.hazardSpeedMult * rand(0.9, 1.1);
+  const lvl = state.level ?? 1;
+  const canSpiral = lvl >= SPIRAL_UNLOCK_LEVEL;
+  const canCharger = lvl >= CHARGER_UNLOCK_LEVEL;
 
-  state.hazards.push({
-    x,
-    y,
-    r,
-    vx: jx * speed,
-    vy: jy * speed,
-    nearCd: 0,
-  });
+  let type = "normal";
+
+  if (canSpiral && Math.random() < SPIRAL_CHANCE) type = "spiral";
+  else if (canCharger && Math.random() < CHARGER_CHANCE) type = "charger";
+  const base = { x, y, r, vx: jx * speed, vy: jy * speed, nearCd: 0, type };
+
+  if (type === "spiral") {
+    state.hazards.push({
+      ...base,
+      turn: Math.random() < 0.5 ? -1 : 1, // clockwise / counter
+    });
+  } else if (type === "charger") {
+    // your charger object as-is
+    state.hazards.push({
+      ...base,
+      phase: "arm",       // arm -> charge
+      armLeft: CHARGER_ARM_TIME,
+      dir: { x: jx, y: jy },
+    });
+  } else {
+    state.hazards.push(base);
+  }
 }
 
 function spawnCoin(state) {
   for (let attempt = 0; attempt < 12; attempt++) {
-    let x = rand(COIN_RADIUS, CANVAS_W - COIN_RADIUS);
-    let y = rand(COIN_RADIUS, CANVAS_H - COIN_RADIUS);
+    let x = rand(COIN_RADIUS, WORLD_W - COIN_RADIUS);
+    let y = rand(COIN_RADIUS, WORLD_H - COIN_RADIUS);
 
     // Risk bias: half the time, spawn near a random hazard (if any)
     if (state.hazards.length > 0 && Math.random() < 0.5) {
       const h = state.hazards[Math.floor(rand(0, state.hazards.length))];
       const angle = rand(0, Math.PI * 2);
       const d = rand(h.r + 26, h.r + 90);
-      x = clamp(h.x + Math.cos(angle) * d, COIN_RADIUS, CANVAS_W - COIN_RADIUS);
-      y = clamp(h.y + Math.sin(angle) * d, COIN_RADIUS, CANVAS_H - COIN_RADIUS);
+      x = clamp(h.x + Math.cos(angle) * d, COIN_RADIUS, WORLD_W - COIN_RADIUS);
+      y = clamp(h.y + Math.sin(angle) * d, COIN_RADIUS, WORLD_H - COIN_RADIUS);
     }
 
     const coin = { x, y, r: COIN_RADIUS };
@@ -267,6 +290,8 @@ export function step(state, input, dt) {
   state._spawnTimer += t;
   state._rampTimer += t;
   state._levelTimer += t;
+  state._iframes = Math.max(0, (state._iframes ?? 0) - t);
+  state.screenShake = Math.max(0, (state.screenShake ?? 0) - 30 * t);
 
   if (state._levelTimer >= LEVEL_UP_EVERY) {
     state._levelTimer = 0;
@@ -373,13 +398,55 @@ export function step(state, input, dt) {
   }
 
   // clamp to arena
-  p.x = clamp(p.x, p.r, CANVAS_W - p.r);
-  p.y = clamp(p.y, p.r, CANVAS_H - p.r);
+  p.x = clamp(p.x, p.r, WORLD_W - p.r);
+  p.y = clamp(p.y, p.r, WORLD_H - p.r);
 
   // move hazards
   for (const h of state.hazards) {
-    h.x += h.vx * t;
-    h.y += h.vy * t;
+    if (h.type === "spiral") {
+      const ang = (SPIRAL_TURN_RATE * (h.turn ?? 1)) * t;
+      const cos = Math.cos(ang);
+      const sin = Math.sin(ang);
+
+      const vx = h.vx;
+      const vy = h.vy;
+
+      // rotate velocity vector
+      h.vx = vx * cos - vy * sin;
+      h.vy = vx * sin + vy * cos;
+
+      h.x += h.vx * t;
+      h.y += h.vy * t;
+    } else if (h.type === "charger") {
+      if (h.phase === "arm") {
+        // track player while arming
+        const dx = p.x - h.x;
+        const dy = p.y - h.y;
+        const len = Math.hypot(dx, dy) || 1;
+        h.dir = { x: dx / len, y: dy / len };
+
+        // subtle drift (keeps it feeling alive)
+        const drift = 0.35;
+        h.x += h.dir.x * (h.vx * drift) * t;
+        h.y += h.dir.y * (h.vy * drift) * t;
+
+        h.armLeft -= t;
+        if (h.armLeft <= 0) {
+          h.phase = "charge";
+          // lock in lunge velocity
+          h.vx = h.dir.x * Math.hypot(h.vx, h.vy) * CHARGER_SPEED_MULT;
+          h.vy = h.dir.y * Math.hypot(h.vx, h.vy) * CHARGER_SPEED_MULT;
+        }
+      } else {
+        // charging
+        h.x += h.vx * t;
+        h.y += h.vy * t;
+      }
+    } else {
+      // normal hazard
+      h.x += h.vx * t;
+      h.y += h.vy * t;
+    }
   }
 
   if (state.bossActive && state.boss) {
@@ -398,6 +465,7 @@ export function step(state, input, dt) {
     if (circleHit(p, b)) {
       state.timeScale = 0.2;
       state.hitFlash = 1;
+      state.screenShake = Math.max(state.screenShake ?? 0, 2);
       return {
         ...state,
         status: "gameover",
@@ -437,7 +505,7 @@ export function step(state, input, dt) {
 
   // cull hazards that are far out
   state.hazards = state.hazards.filter(
-    (h) => h.x > -120 && h.x < CANVAS_W + 120 && h.y > -120 && h.y < CANVAS_H + 120
+    (h) => h.x > -120 && h.x < WORLD_W + 120 && h.y > -120 && h.y < WORLD_H + 120
   );
 
     // collect coins (streak scoring)
@@ -473,30 +541,32 @@ export function step(state, input, dt) {
   // collisions
   for (const h of state.hazards) {
     if (circleHit(p, h)) {
+      // if invincible, ignore
+      if ((state._iframes ?? 0) > 0) continue;
+
+      state.lives = (state.lives ?? START_LIVES) - 1;
+      state._iframes = IFRAME_TIME;
+
+      // little feedback
+      state.hitFlash = 1;
+      state.screenShake = Math.max(state.screenShake ?? 0, 10);
+      if (typeof addPopup === "function") addPopup(state, p.x, p.y - 24, "HIT!");
+
+      // still alive
+      if (state.lives > 0) {
+        // optional: clear nearby hazards so it feels fair
+        state.hazards = state.hazards.filter(
+          (hz) => dist2(p.x, p.y, hz.x, hz.y) > (p.r + hz.r + 40) ** 2
+        );
+        break;
+      }
+
+      // out of lives -> gameover
       const finalScore = Math.floor(state.score);
       const newHigh = Math.max(state.highScore, finalScore);
+      if (newHigh !== state.highScore) localStorage.setItem("riskzone_highscore", String(newHigh));
 
-      const board = saveRun({
-        score: finalScore,
-        level: state.level ?? 1,
-        at: new Date().toISOString(),
-      });
-
-      if (newHigh !== state.highScore) {
-        saveHighScore(newHigh);
-      }
-      playGameOver();
-
-      state.timeScale = 0.25;
-      state.hitFlash = 1;
-
-      return {
-        ...state,
-        status: "gameover",
-        score: finalScore,
-        highScore: newHigh,
-        leaderboard: board,
-      };
+      return { ...state, status: "gameover", score: finalScore, highScore: newHigh };
     }
   }
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { CANVAS_W, CANVAS_H, BOSS_HEALTH } from "../game/constants";
+import { CANVAS_W, CANVAS_H, WORLD_W, WORLD_H, BOSS_HEALTH, STAR_COUNT, STAR_PARALLAX } from "../game/constants";
 
 const COLORS = {
   skater: "#44d7b6",
@@ -10,6 +10,7 @@ const COLORS = {
 
 export default function GameCanvas({ state }) {
   const canvasRef = useRef(null);
+  const starsRef = useRef(null);
   const playerColor = COLORS[state.characterId] || "#44d7b6";
 
   useEffect(() => {
@@ -18,37 +19,149 @@ export default function GameCanvas({ state }) {
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
 
-    // background
+    // Keep a stable backing buffer (prevents blur + size glitches)
+    const targetW = Math.round(CANVAS_W * dpr);
+    const targetH = Math.round(CANVAS_H * dpr);
+
+    if (canvas.width !== targetW || canvas.height !== targetH) {
+      canvas.width = targetW;
+      canvas.height = targetH;
+    }
+
+    // From here on: draw using logical units (CANVAS_W x CANVAS_H)
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
 
-    // arena background
+
+    // generate stars once (stable positions, no flicker)
+    if (!starsRef.current) {
+      const stars = [];
+      for (let i = 0; i < (STAR_COUNT || 140); i++) {
+        stars.push({
+          x: Math.random() * WORLD_W,
+          y: Math.random() * WORLD_H,
+          r: 0.6 + Math.random() * 1.4,      // radius
+          a: 0.25 + Math.random() * 0.45,    // alpha
+        });
+      }
+      starsRef.current = stars;
+    }
+
+    const p = state.player;
+    const camX = Math.max(0, Math.min(WORLD_W - CANVAS_W, p.x - CANVAS_W / 2));
+    const camY = Math.max(0, Math.min(WORLD_H - CANVAS_H, p.y - CANVAS_H / 2));
+    const camXi = Math.round(camX);
+    const camYi = Math.round(camY);
+    const shake = state.screenShake ?? 0;
+    const sx = shake ? (Math.random() * 2 - 1) * shake : 0;
+    const sy = shake ? (Math.random() * 2 - 1) * shake : 0;
+    const tw = (state.timeAlive || 0) * 0.9;
+
+    // background in screen space (doesn't cover stars)
+    ctx.save();
     ctx.fillStyle = "#0b1220";
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    ctx.restore();
 
-    // subtle grid
-    ctx.globalAlpha = 0.12;
-    ctx.strokeStyle = "#ffffff";
-    for (let x = 0; x <= CANVAS_W; x += 60) {
+    // parallax starfield (moves slower than world)
+    const par = STAR_PARALLAX ?? 0.35;
+    const starOffsetX = Math.round(camXi * (1 - par));
+    const starOffsetY = Math.round(camYi * (1 - par));
+
+    ctx.save();
+    ctx.translate(starOffsetX, starOffsetY);
+    ctx.fillStyle = "#ffffff";
+
+    for (const s of starsRef.current) {
+      // cull to visible-ish area for perf
+      if (
+        s.x < camX - 200 || s.x > camX + CANVAS_W + 200 ||
+        s.y < camY - 200 || s.y > camY + CANVAS_H + 200
+      ) continue;
+
+      const a = s.a + 0.08 * Math.sin(tw + s.x * 0.01 + s.y * 0.01);
+      ctx.globalAlpha = Math.max(0.05, Math.min(0.9, a));
       ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, CANVAS_H);
-      ctx.stroke();
-    }
-    for (let y = 0; y <= CANVAS_H; y += 60) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(CANVAS_W, y);
-      ctx.stroke();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
     }
     ctx.globalAlpha = 1;
+    ctx.restore();
+
+    // camera transform: world -> screen
+    ctx.save();
+    ctx.translate(-camXi + sx, -camYi + sy);
+
+    // subtle grid in world space
+    const GRID = 60;
+    ctx.globalAlpha = 0.12;
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1;
+
+    // draw only the visible slice (performance-friendly)
+    const startX = Math.floor(camXi / GRID) * GRID;
+    const endX = Math.min(WORLD_W, camXi + CANVAS_W + GRID);
+    for (let x = startX; x <= endX; x += GRID) {
+      ctx.beginPath();
+      ctx.moveTo(x, camYi);
+      ctx.lineTo(x, camYi + CANVAS_H);
+      ctx.stroke();
+   }
+
+   const startY = Math.floor(camYi / GRID) * GRID;
+   const endY = Math.min(WORLD_H, camYi + CANVAS_H + GRID);
+   for (let y = startY; y <= endY; y += GRID) {
+     ctx.beginPath();
+     ctx.moveTo(camXi, y);
+     ctx.lineTo(camXi + CANVAS_W, y);
+     ctx.stroke();
+   }
+   ctx.globalAlpha = 1;
+
 
     // hazards
-    ctx.fillStyle = "#ff3b3b";
     for (const h of state.hazards) {
+      const isCharger = h.type === "charger";
+      const isSpiral = h.type === "spiral";
+
+      if (isCharger && h.phase === "arm") {
+        // telegraph color
+        ctx.fillStyle = "rgba(255, 80, 80, 0.55)";
+      } else if (isCharger) {
+        // charging color
+        ctx.fillStyle = "#ff2f2f";
+      } else if (isSpiral) {
+        ctx.fillStyle = "#ff6bd6"; // pink-ish danger (or keep red but add ring)
+      } else {
+        ctx.fillStyle = "#ff4d4d";
+      }
+
       ctx.beginPath();
       ctx.arc(h.x, h.y, h.r, 0, Math.PI * 2);
       ctx.fill();
+
+      // optional: ring indicator for chargers
+      if (isCharger) {
+        ctx.globalAlpha = 0.35;
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(h.x, h.y, h.r + 6, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+
+      if (isSpiral) {
+        ctx.globalAlpha = 0.35;
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(h.x, h.y, h.r + 5, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
     }
 
     // boss
@@ -68,8 +181,6 @@ export default function GameCanvas({ state }) {
       const hpRatio = b.hp / BOSS_HEALTH;
       ctx.fillRect(b.x - b.r, b.y - b.r - 14, b.r * 2 * hpRatio, 6);
     }
-
-    const p = state.player;
 
     // dash trail
     if (p._dashLeft > 0) {
@@ -135,17 +246,31 @@ export default function GameCanvas({ state }) {
       ctx.restore();
     }
 
-    // player
-    ctx.fillStyle = playerColor;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.fill();
+    const inv = (state._iframes ?? 0) > 0;
+    if (inv && Math.floor((state.timeAlive || 0) * 18) % 2 === 0) {
+      // skip drawing player every other frame (blink)
+    } else {
+      // draw player as normal
+      ctx.fillStyle = playerColor;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
 
-    ctx.font = "16px ui-sans-serif, system-ui";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    const badge = { skater: "🛼", tank: "🛡️", spark: "⚡", ghost: "👻" }[state.characterId];
-    if (badge) ctx.fillText(badge, p.x, p.y - 22);
+      ctx.font = "16px ui-sans-serif, system-ui";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      const badge = { skater: "🛼", tank: "🛡️", spark: "⚡", ghost: "👻" }[state.characterId];
+      if (badge) ctx.fillText(badge, p.x, p.y - 22);
+
+      // outline
+      ctx.strokeStyle = "rgba(255,255,255,0.35)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r + 2, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    ctx.restore();
 
     // hit flash overlay
     const flash = state.hitFlash || 0;
@@ -155,13 +280,6 @@ export default function GameCanvas({ state }) {
       ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
       ctx.globalAlpha = 1;
     }
-
-    // outline
-    ctx.strokeStyle = "rgba(255,255,255,0.35)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r + 2, 0, Math.PI * 2);
-    ctx.stroke();
   }, [state]);
 
     
@@ -174,6 +292,7 @@ export default function GameCanvas({ state }) {
         width: "100%",
         maxWidth: CANVAS_W,
         height: "auto",
+        // maxHeight: "70vh",
         aspectRatio: `${CANVAS_W} / ${CANVAS_H}`,
         borderRadius: 16,
         border: "1px solid rgba(255,255,255,0.12)",

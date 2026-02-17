@@ -11,6 +11,9 @@ import { fetchLeaderboard, submitScore } from "./game/api";
 
 export default function App() {
   const { state, start, toggleMute, togglePause, setInput, setCharacter } = useGameEngine();
+  const isTouch = typeof window !== "undefined" && (
+    "ontouchstart" in window || navigator.maxTouchPoints > 0
+  );
   const [playerName, setPlayerName] = useState(
     () => localStorage.getItem("riskzone_name") || "Mike"
   );
@@ -98,7 +101,7 @@ export default function App() {
         overscrollBehavior: "none",
       }}
     >
-      <div style={{ width: "min(980px, 96vw)" }}>
+      <div style={{ width: "min(980px, 100vw)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 14, alignItems: "center" }}>
           <div style={{ color: "white" }}>
             <div style={{ fontSize: 26, fontWeight: 900, letterSpacing: -0.6 }}>Risk Zone</div>
@@ -165,7 +168,7 @@ export default function App() {
           })}
         </div>
 
-        <div style={{ position: "relative", marginTop: 14, touchAction: "none" }}>
+        <div style={{ position: "relative", marginTop: 14, touchAction: "none", width: "100%" }}>
           <GameCanvas state={state} />
 
           {state.status === "ready" && (
@@ -189,7 +192,7 @@ export default function App() {
           )}
         </div>
 
-        <TouchControls setInput={(patch) => setInput(patch)} />
+        {isTouch && <TouchControls setInput={setInput} />}
         <Leaderboard items={serverBoard.length ? serverBoard : state.leaderboard} />
         <div style={{ marginTop: 8, opacity: 0.7, color: "white", fontSize: 12 }}>
           {apiStatus === "ok" ? "Global leaderboard connected ✅" : "Global leaderboard offline — showing local results"}

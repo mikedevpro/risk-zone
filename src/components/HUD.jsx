@@ -10,6 +10,7 @@ export default function HUD({ state }) {
       <Pill label="Streak" value={state.coinStreak} />
       <Pill label="Coins" value={state.coins.length} />
       <Pill label="Near Misses" value={state.nearMisses} />
+      <Pill label="Lives" value={"❤️".repeat(state.lives ?? 0)} />
       <Pill label="Level" value={state.level} />
       <Pill label="Score" value={score} />
       <Pill label="High" value={state.highScore} />

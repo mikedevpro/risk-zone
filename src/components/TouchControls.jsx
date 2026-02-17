@@ -61,46 +61,43 @@ export default function TouchControls({ setInput }) {
 
   return (
     <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-      {/* Left joystick zone */}
+      {/* Left move zone */}
       <div
         ref={stickRef}
         style={{
           position: "absolute",
-          left: 12,
-          bottom: 12,
-          width: 140,
-          height: 140,
-          borderRadius: 24,
-          background: "rgba(255,255,255,0.06)",
-          border: "1px solid rgba(255,255,255,0.12)",
+          left: 0,
+          bottom: 0,
+          width: "50vw",
+          height: "60vh",
           pointerEvents: "auto",
           touchAction: "none",
+          background: "transparent",
         }}
       />
 
-      {/* Dash button */}
-      <button
-        onTouchStart={() => setInput({ dash: true })}
-        onTouchEnd={() => setInput({ dash: false })}
-        onMouseDown={() => setInput({ dash: true })}
-        onMouseUp={() => setInput({ dash: false })}
+      {/* Right dash zone */}
+      <div
+        onPointerDown={(e) => {
+          e.preventDefault();
+          setInput({ dash: true });
+        }}
+        onPointerUp={(e) => {
+          e.preventDefault();
+          setInput({ dash: false });
+        }}
+        onPointerCancel={() => setInput({ dash: false })}
         style={{
           position: "absolute",
-          right: 12,
-          bottom: 22,
-          width: 92,
-          height: 92,
-          borderRadius: 999,
-          background: "rgba(255,255,255,0.10)",
-          border: "1px solid rgba(255,255,255,0.16)",
-          color: "white",
-          fontWeight: 900,
-          letterSpacing: 0.5,
+          right: 0,
+          bottom: 0,
+          width: "50vw",
+          height: "60vh",
           pointerEvents: "auto",
+          touchAction: "none",
+          background: "transparent",
         }}
-      >
-        DASH
-      </button>
+      />
     </div>
   );
 }
