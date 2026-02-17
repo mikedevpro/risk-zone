@@ -1,78 +1,63 @@
-# Risk Zone
+# RiskZone 🎮
 
-Risk Zone is a fast arcade survival game built with React and the HTML5 Canvas API.
-You control a single player orb, avoid incoming hazards, and survive as long as possible while the game ramps difficulty over time.
+A real-time survival / dodge game built with **React + HTML5 Canvas**.  
+Survive as long as you can while hazards spawn faster and move quicker over time.
 
-## Gameplay 🎮
+## Live Demo
+- https://YOUR-LIVE-LINK-HERE
 
-- Hazards spawn from outside the arena and move inward toward the player.
-- Survival time increases score (`+1` point per second alive).
-- Difficulty ramps automatically over time.
-- Hazard movement speed increases over time.
-- Hazard spawn interval decreases over time.
-- High score is persisted in browser `localStorage`.
+## Controls
+- **Move:** WASD / Arrow Keys
+- **Pause:** P or Esc
+- **Mute:** M
+- **Restart:** R
+- **Start:** Space / Enter
 
-## Controls 🕹️
+## Features
+- Real-time game loop (requestAnimationFrame)
+- Dynamic hazard spawning + difficulty scaling
+- Collision detection (circle math)
+- Score/time survived tracking
+- Pause + mute toggles
 
-- Move: `W A S D` or Arrow Keys
-- Dash: `Shift` (short burst in current movement direction, with cooldown)
-- Start / Restart: `Space` or `Enter`
+## Tech Stack
+- React + Vite
+- HTML5 Canvas
+- JavaScript (or TypeScript if you migrate later)
 
-## Tech Stack ⚙️
+## What I focused on
+This project was built to practice **real-time systems thinking** beyond CRUD apps:
+- game loop architecture (update → render)
+- input handling
+- collision math
+- difficulty scaling
+- performance-friendly patterns
 
-- React 19
-- Vite 7
-- Canvas 2D rendering
-- ESLint 9
-
-## Run Locally 🚀
-
-Requirements:
-- Node.js 18+ (recommended: latest LTS)
-- npm
-
-Install and run:
-
+## Local Development
 ```bash
 npm install
 npm run dev
-```
 
-Build for production:
 
-```bash
-npm run build
-```
+---
 
-Preview production build:
+### 2) PLAY.md (quick guide)
 
-```bash
-npm run preview
-```
+```md
+# How to Play RiskZone
 
-Lint:
+**Goal:** Survive as long as possible. Hazards become more intense over time.
 
-```bash
-npm run lint
-```
+## Controls
+- Move: WASD / Arrow Keys
+- Pause: P or Esc
+- Mute: M
+- Restart: R
+- Start: Space / Enter
 
-## Project Structure 🧱
+## Tips
+- Small movements beat big panic moves.
+- Watch spawn patterns; don’t get cornered.
+- Near-misses are safer than wide dodges (once you get comfortable).
 
-```text
-src/
-  components/
-    GameCanvas.jsx      # Canvas renderer (arena, hazards, player, effects)
-    HUD.jsx             # Score and difficulty readout
-    Overlay.jsx         # Ready/Game over overlays
-  game/
-    constants.js        # Tunable gameplay constants
-    engine.js           # Core simulation (movement, spawn, collision, scoring)
-    useGameEngine.js    # Input + requestAnimationFrame loop hook
-  App.jsx               # Main game composition
-```
-
-## Notes 🧠
-
-- Arena size is fixed at `900 x 540` world units and scales responsively in the UI.
-- Game loop uses `requestAnimationFrame` with a capped delta time for stable updates.
-- Difficulty tuning values live in `src/game/constants.js`.
+![RiskZone gameplay](docs/riskzone.gif)
