@@ -9,6 +9,8 @@ export default function HUD({ state }) {
       <Pill label="Streak Window" value={`${streakRemaining.toFixed(1)}s`} />
       <Pill label="Streak" value={state.coinStreak} />
       <Pill label="Coins" value={state.coins.length} />
+      <Pill label="Near Misses" value={state.nearMisses} />
+      <Pill label="Level" value={state.level} />
       <Pill label="Score" value={score} />
       <Pill label="High" value={state.highScore} />
       <Pill label="Spawn" value={`${state.hazardSpawnEvery.toFixed(2)}s`} />

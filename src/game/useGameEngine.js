@@ -27,6 +27,10 @@ export function useGameEngine() {
         setMuted(next);
         return { ...s, muted: next };
       }),
+      setCharacter: (id) => setState(s => {
+        localStorage.setItem("riskzone_char", id);
+        return { ...s, characterId: id };
+      }),
       reset: () => setState(() => makeInitialState()),
       setInput: (patch) => {
         inputRef.current = { ...inputRef.current, ...patch };

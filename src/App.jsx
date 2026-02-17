@@ -3,10 +3,12 @@ import HUD from "./components/HUD";
 import Overlay from "./components/Overlay";
 import { useGameEngine } from "./game/useGameEngine";
 import TouchControls from "./components/TouchControls";
+import Leaderboard from "./components/Leaderboard";
+import { CHARACTERS } from "./game/characters";
 
 
 export default function App() {
-  const { state, start, toggleMute, togglePause, setInput } = useGameEngine();
+  const { state, start, toggleMute, togglePause, setInput, setCharacter } = useGameEngine();
   const btnStyle = {
     height: 36,
     padding: "0 12px",
@@ -71,6 +73,27 @@ export default function App() {
           <HUD state={state} />
         </div>
 
+        <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {CHARACTERS.map((c) => {
+            const active = (state.characterId || "skater") === c.id;
+            return (
+              <button
+                key={c.id}
+                onClick={() => setCharacter(c.id)}
+                style={{
+                  ...btnStyle,
+                  height: 34,
+                  background: active ? c.color : "rgba(255,255,255,0.08)",
+                  border: active ? "1px solid rgba(255,255,255,0.55)" : "1px solid rgba(255,255,255,0.16)",
+                  color: active ? "#07111f" : "white",
+                }}
+              >
+                {c.badge} {c.name}
+              </button>
+            );
+          })}
+        </div>
+
         <div style={{ position: "relative", marginTop: 14, touchAction: "none" }}>
           <GameCanvas state={state} />
 
@@ -96,6 +119,7 @@ export default function App() {
         </div>
 
         <TouchControls setInput={(patch) => setInput(patch)} />
+        <Leaderboard items={state.leaderboard} />
 
         <div style={{
           marginTop: 12,

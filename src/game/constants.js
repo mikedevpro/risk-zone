@@ -25,3 +25,12 @@ export const STREAK_WINDOW = 2.5; // seconds to keep streak alive
 export const STREAK_BONUS_STEP = 5; // extra points per streak level
 export const STREAK_BONUS_CAP = 15; // max bonus points (so coin max = 10 + 15 = 25)
 
+export const NEAR_MISS_DIST = 12;      // extra pixels beyond collision radius
+export const NEAR_MISS_COOLDOWN = 0.35; // seconds per hazard to avoid spam
+export const NEAR_MISS_POINTS = 3;
+
+export const LEVEL_UP_EVERY = 18; // seconds survived per level
+export const LEVEL_MAX = 20;
+export const LEVEL_SPEED_BOOST = 1.07; // per level
+export const LEVEL_SPAWN_BOOST = 0.92; // per level (lower = faster spawns)
+

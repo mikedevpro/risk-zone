@@ -1,8 +1,16 @@
 import { useEffect, useRef } from "react";
 import { CANVAS_W, CANVAS_H } from "../game/constants";
 
+const COLORS = {
+  skater: "#44d7b6",
+  tank: "#8ab4ff",
+  spark: "#ffd54a",
+  ghost: "#e9a8ff",
+};
+
 export default function GameCanvas({ state }) {
   const canvasRef = useRef(null);
+  const playerColor = COLORS[state.characterId] || "#44d7b6";
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -48,7 +56,7 @@ export default function GameCanvas({ state }) {
     // dash trail
     if (p._dashLeft > 0) {
       ctx.globalAlpha = 0.4;
-      ctx.fillStyle = "#44d7b6";
+      ctx.fillStyle = playerColor;
       ctx.beginPath();
       ctx.arc(
         p.x - p._dashDir.x * 14,
@@ -102,7 +110,7 @@ export default function GameCanvas({ state }) {
       const glow = Math.min(20, 6 + streak * 3); // cap glow
       ctx.save();
       ctx.globalAlpha = 0.18 + Math.min(0.35, streak * 0.06);
-      ctx.fillStyle = "#44d7b6";
+      ctx.fillStyle = playerColor;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r + glow, 0, Math.PI * 2);
       ctx.fill();
@@ -110,10 +118,16 @@ export default function GameCanvas({ state }) {
     }
 
     // player
-    ctx.fillStyle = "#44d7b6";
+    ctx.fillStyle = playerColor;
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
     ctx.fill();
+
+    ctx.font = "16px ui-sans-serif, system-ui";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const badge = { skater: "🛼", tank: "🛡️", spark: "⚡", ghost: "👻" }[state.characterId];
+    if (badge) ctx.fillText(badge, p.x, p.y - 22);
 
     // hit flash overlay
     const flash = state.hitFlash || 0;

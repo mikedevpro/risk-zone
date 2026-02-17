@@ -1,4 +1,6 @@
 import { playCoin, playDash, playGameOver } from "./sound";
+import { saveRun, loadLeaderboard } from "./leaderboard";
+import { CHARACTERS } from "./characters";
 
 import {
   CANVAS_W,
@@ -20,6 +22,10 @@ import {
   STREAK_WINDOW,
   STREAK_BONUS_STEP,
   STREAK_BONUS_CAP,
+  LEVEL_UP_EVERY,
+  LEVEL_MAX,
+  LEVEL_SPEED_BOOST,
+  LEVEL_SPAWN_BOOST,
 } from "./constants";
 
 export function clamp(v, min, max) {
@@ -58,19 +64,23 @@ function saveHighScore(score) {
 }
 
 export function makeInitialState() {
-  return {
+  const state = {
     status: "ready", // ready | playing | gameover
     timeAlive: 0,
     score: 0,
     highScore: getSavedHighScore(),
+    characterId: localStorage.getItem("riskzone_char") || "skater",
     timeScale: 1,
     hitFlash: 0,
+    nearMisses: 0,
 
     // difficulty
     hazardSpeedMult: 1,
     hazardSpawnEvery: HAZARD_SPAWN_START,
+    level: 1,
     _spawnTimer: 0,
     _rampTimer: 0,
+    _levelTimer: 0,
 
     player: {
       x: CANVAS_W / 2,
@@ -94,10 +104,14 @@ export function makeInitialState() {
     popups: [],
     coinStreak: 0,
     _streakTimer: 0,
+    leaderboard: loadLeaderboard(),
 
     paused: false,
     muted: JSON.parse(localStorage.getItem("riskzone_muted") || "false"),
   };
+
+  state.nearMisses += 1;
+  return state;
 }
 
 function spawnHazard(state) {
@@ -147,6 +161,7 @@ function spawnHazard(state) {
     r,
     vx: jx * speed,
     vy: jy * speed,
+    nearCd: 0,
   });
 }
 
@@ -208,6 +223,18 @@ export function startGame(state) {
   const next = makeInitialState();
   next.status = "playing";
   next.highScore = state.highScore ?? next.highScore;
+
+  const char = CHARACTERS.find(c => c.id === (state.characterId || next.characterId)) || CHARACTERS[0];
+  next.characterId = char.id;
+
+  next.player.speed = char.speed ?? next.player.speed;
+  next.player.dashCooldown = char.dashCooldown ?? next.player.dashCooldown;
+  next.player.r = char.radius ?? next.player.r;
+
+  // small bonuses stored for scoring logic
+  next.coinBonus = char.coinBonus ?? 0;
+  next.nearMissBonus = char.nearMissBonus ?? 0;
+
   return next;
 }
 
@@ -229,6 +256,24 @@ export function step(state, input, dt) {
   state.score += t; // +1 per sec alive
   state._spawnTimer += t;
   state._rampTimer += t;
+  state._levelTimer += t;
+
+  if (state._levelTimer >= LEVEL_UP_EVERY) {
+    state._levelTimer = 0;
+    state.level = Math.min(LEVEL_MAX, (state.level ?? 1) + 1);
+
+    // make it tougher
+    state.hazardSpeedMult *= LEVEL_SPEED_BOOST;
+    state.hazardSpawnEvery = Math.max(
+      HAZARD_SPAWN_MIN,
+      state.hazardSpawnEvery * LEVEL_SPAWN_BOOST
+    );
+
+    // optional: tiny score bonus on level up
+    if (typeof addPopup === "function") {
+      addPopup(state, state.player.x, state.player.y - 30, `LEVEL ${state.level}!`);
+    }
+  }
 
   // difficulty ramp
   if (state._rampTimer >= DIFFICULTY_RAMP_EVERY) {
@@ -310,6 +355,25 @@ export function step(state, input, dt) {
     h.y += h.vy * t;
   }
 
+    // near-miss detection
+  for (const h of state.hazards) {
+    h.nearCd = Math.max(0, (h.nearCd ?? 0) - t);
+
+    // distance threshold: (player.r + hazard.r + NEAR_MISS_DIST)
+    const thresh = p.r + h.r + NEAR_MISS_DIST;
+    const d2 = dist2(p.x, p.y, h.x, h.y);
+
+    if (h.nearCd === 0 && d2 <= thresh * thresh && !circleHit(p, h)) {
+      h.nearCd = NEAR_MISS_COOLDOWN;
+      state.score += NEAR_MISS_POINTS + (state.nearMissBonus ?? 0);
+
+      // popup + optional sound tick (reuse coin tone or add a small one later)
+      if (typeof addPopup === "function") {
+        addPopup(state, p.x, p.y - 18, `NEAR +${NEAR_MISS_POINTS}`);
+      }
+    }
+  }
+
   // cull hazards that are far out
   state.hazards = state.hazards.filter(
     (h) => h.x > -120 && h.x < CANVAS_W + 120 && h.y > -120 && h.y < CANVAS_H + 120
@@ -331,7 +395,7 @@ export function step(state, input, dt) {
         (state.coinStreak - 1) * STREAK_BONUS_STEP
       );
 
-      const earned = COIN_SCORE + bonus;
+      const earned = COIN_SCORE + bonus + (state.coinBonus ?? 0);
       state.score += earned;
 
       addPopup(state, c.x, c.y, `+${earned}`);
@@ -351,6 +415,12 @@ export function step(state, input, dt) {
       const finalScore = Math.floor(state.score);
       const newHigh = Math.max(state.highScore, finalScore);
 
+      const board = saveRun({
+        score: finalScore,
+        level: state.level ?? 1,
+        at: new Date().toISOString(),
+      });
+
       if (newHigh !== state.highScore) {
         saveHighScore(newHigh);
       }
@@ -364,6 +434,7 @@ export function step(state, input, dt) {
         status: "gameover",
         score: finalScore,
         highScore: newHigh,
+        leaderboard: board,
       };
     }
   }
