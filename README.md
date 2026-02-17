@@ -4,7 +4,7 @@ A real-time survival / dodge game built with **React + HTML5 Canvas**.
 Survive as long as you can while hazards spawn faster and move quicker over time.
 
 ## Live Demo
-- https://YOUR-LIVE-LINK-HERE
+- https://risk-zone.vercel.app/
 
 ## Controls
 - **Move:** WASD / Arrow Keys
