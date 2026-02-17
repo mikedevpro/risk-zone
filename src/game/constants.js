@@ -34,3 +34,9 @@ export const LEVEL_MAX = 20;
 export const LEVEL_SPEED_BOOST = 1.07; // per level
 export const LEVEL_SPAWN_BOOST = 0.92; // per level (lower = faster spawns)
 
+export const BOSS_LEVEL_INTERVAL = 5;
+
+export const BOSS_RADIUS = 48;
+export const BOSS_SPEED = 120;
+export const BOSS_HEALTH = 20;
+export const BOSS_REWARD = 250;

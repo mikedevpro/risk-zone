@@ -15,6 +15,9 @@ import {
   DIFFICULTY_RAMP_EVERY,
   SPEED_RAMP_MULT,
   SPAWN_RAMP_MULT,
+  NEAR_MISS_DIST,
+  NEAR_MISS_COOLDOWN,
+  NEAR_MISS_POINTS,
   COIN_RADIUS,
   COIN_SCORE,
   COIN_SPAWN_EVERY,
@@ -26,6 +29,11 @@ import {
   LEVEL_MAX,
   LEVEL_SPEED_BOOST,
   LEVEL_SPAWN_BOOST,
+  BOSS_LEVEL_INTERVAL,
+  BOSS_RADIUS,
+  BOSS_HEALTH,
+  BOSS_SPEED,
+  BOSS_REWARD,
 } from "./constants";
 
 export function clamp(v, min, max) {
@@ -81,6 +89,8 @@ export function makeInitialState() {
     _spawnTimer: 0,
     _rampTimer: 0,
     _levelTimer: 0,
+    boss: null,
+    bossActive: false,
 
     player: {
       x: CANVAS_W / 2,
@@ -262,6 +272,21 @@ export function step(state, input, dt) {
     state._levelTimer = 0;
     state.level = Math.min(LEVEL_MAX, (state.level ?? 1) + 1);
 
+    if (state.level % BOSS_LEVEL_INTERVAL === 0) {
+    state.bossActive = true;
+    state.boss = {
+    x: CANVAS_W / 2,
+    y: -BOSS_RADIUS - 20,
+    r: BOSS_RADIUS,
+    hp: BOSS_HEALTH,
+    };
+
+    if (typeof addPopup === "function") {
+    addPopup(state, CANVAS_W / 2, CANVAS_H / 2, "BOSS INCOMING");
+    }
+}
+
+
     // make it tougher
     state.hazardSpeedMult *= LEVEL_SPEED_BOOST;
     state.hazardSpawnEvery = Math.max(
@@ -286,9 +311,11 @@ export function step(state, input, dt) {
   }
 
   // spawn hazards
-  while (state._spawnTimer >= state.hazardSpawnEvery) {
-    state._spawnTimer -= state.hazardSpawnEvery;
-    spawnHazard(state);
+  if (!state.bossActive) {
+    while (state._spawnTimer >= state.hazardSpawnEvery) {
+      state._spawnTimer -= state.hazardSpawnEvery;
+      spawnHazard(state);
+    }
   }
 
   // spawn coins
@@ -353,6 +380,40 @@ export function step(state, input, dt) {
   for (const h of state.hazards) {
     h.x += h.vx * t;
     h.y += h.vy * t;
+  }
+
+  if (state.bossActive && state.boss) {
+    state.boss.hp -= 1;
+    const b = state.boss;
+
+    // move toward player
+    const dx = p.x - b.x;
+    const dy = p.y - b.y;
+    const len = Math.hypot(dx, dy) || 1;
+
+    b.x += (dx / len) * BOSS_SPEED * t;
+    b.y += (dy / len) * BOSS_SPEED * t;
+
+    // collision = game over
+    if (circleHit(p, b)) {
+      state.timeScale = 0.2;
+      state.hitFlash = 1;
+      return {
+        ...state,
+        status: "gameover",
+        score: Math.floor(state.score),
+      };
+    }
+  }
+
+  if (state.bossActive && state.boss && state.boss.hp <= 0) {
+    state.score += BOSS_REWARD;
+    state.bossActive = false;
+    state.boss = null;
+
+    if (typeof addPopup === "function") {
+      addPopup(state, p.x, p.y - 40, `BOSS DEFEATED +${BOSS_REWARD}`);
+    }
   }
 
     // near-miss detection

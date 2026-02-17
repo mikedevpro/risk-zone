@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import GameCanvas from "./components/GameCanvas";
 import HUD from "./components/HUD";
 import Overlay from "./components/Overlay";
@@ -5,10 +6,64 @@ import { useGameEngine } from "./game/useGameEngine";
 import TouchControls from "./components/TouchControls";
 import Leaderboard from "./components/Leaderboard";
 import { CHARACTERS } from "./game/characters";
+import { fetchLeaderboard, submitScore } from "./game/api";
 
 
 export default function App() {
   const { state, start, toggleMute, togglePause, setInput, setCharacter } = useGameEngine();
+  const [playerName, setPlayerName] = useState(
+    () => localStorage.getItem("riskzone_name") || "Mike"
+  );
+  const [serverBoard, setServerBoard] = useState([]);
+  const [apiStatus, setApiStatus] = useState("idle"); // idle | ok | down
+
+  useEffect(() => {
+    localStorage.setItem("riskzone_name", playerName);
+  }, [playerName]);
+
+  useEffect(() => {
+    fetchLeaderboard(10)
+      .then((b) => {
+        setServerBoard(b);
+        setApiStatus("ok");
+      })
+      .catch(() => setApiStatus("down"));
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function run() {
+      if (state.status !== "gameover") return;
+
+      try {
+        const updated = await submitScore(
+          {
+            name: (playerName || "Player").slice(0, 16),
+            score: state.score,
+            level: state.level ?? 1,
+            character: state.characterId ?? null,
+          },
+          10
+        );
+
+        if (!cancelled) {
+          setServerBoard(updated);
+          setApiStatus("ok");
+        }
+      } catch (e) {
+        if (!cancelled) setApiStatus("down");
+        // local fallback still works
+        console.warn("Score submit failed:", e);
+      }
+    }
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [state.status, state.score, state.level, state.characterId, playerName]);
+
   const btnStyle = {
     height: 36,
     padding: "0 12px",
@@ -53,6 +108,22 @@ export default function App() {
           </div>
 
           <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
+            <input
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              placeholder="Name"
+              maxLength={16}
+              style={{
+                height: 36,
+                padding: "0 10px",
+                borderRadius: 10,
+                border: "1px solid rgba(255,255,255,0.16)",
+                background: "rgba(0,0,0,0.18)",
+                color: "white",
+                fontWeight: 800,
+                outline: "none",
+              }}
+            />
             <button onClick={start} style={btnPrimary}>
               {state.status === "playing" ? "Restart" : "Start"}
             </button>
@@ -119,7 +190,10 @@ export default function App() {
         </div>
 
         <TouchControls setInput={(patch) => setInput(patch)} />
-        <Leaderboard items={state.leaderboard} />
+        <Leaderboard items={serverBoard.length ? serverBoard : state.leaderboard} />
+        <div style={{ marginTop: 8, opacity: 0.7, color: "white", fontSize: 12 }}>
+          {apiStatus === "ok" ? "Global leaderboard connected ✅" : "Global leaderboard offline — showing local results"}
+        </div>
 
         <div style={{
           marginTop: 12,

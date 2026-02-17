@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { CANVAS_W, CANVAS_H } from "../game/constants";
+import { CANVAS_W, CANVAS_H, BOSS_HEALTH } from "../game/constants";
 
 const COLORS = {
   skater: "#44d7b6",
@@ -49,6 +49,24 @@ export default function GameCanvas({ state }) {
       ctx.beginPath();
       ctx.arc(h.x, h.y, h.r, 0, Math.PI * 2);
       ctx.fill();
+    }
+
+    // boss
+    if (state.bossActive && state.boss) {
+      const b = state.boss;
+
+      ctx.fillStyle = "#ff4d4d";
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      ctx.fill();
+
+      // health bar
+      ctx.fillStyle = "rgba(0,0,0,0.5)";
+      ctx.fillRect(b.x - b.r, b.y - b.r - 14, b.r * 2, 6);
+
+      ctx.fillStyle = "#44ff88";
+      const hpRatio = b.hp / BOSS_HEALTH;
+      ctx.fillRect(b.x - b.r, b.y - b.r - 14, b.r * 2 * hpRatio, 6);
     }
 
     const p = state.player;
