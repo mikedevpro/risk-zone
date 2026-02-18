@@ -13,8 +13,8 @@ export default function GameOverScreen({ score = 0, highScore = 0, lives = 0, le
     >
       <div
         style={{
-          width: "min(680px, 92%)",
-          padding: "20px 22px",
+          width: "min(680px, 94%)",
+          padding: "clamp(14px, 3vw, 20px) clamp(14px, 3.2vw, 22px)",
           borderRadius: 16,
           background: "rgba(18,6,10,0.72)",
           border: "1px solid rgba(255,255,255,0.16)",

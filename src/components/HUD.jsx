@@ -1,23 +1,41 @@
 import { STREAK_WINDOW } from "../game/constants";
 
-export default function HUD({ state }) {
+export default function HUD({ state, compact = false }) {
   const score = state.status === "playing" ? Math.floor(state.score) : state.score;
   const streakRemaining = Math.max(0, STREAK_WINDOW - state._streakTimer);
+  const primary = (
+    <>
+      <Pill label="Lives" value={"❤️".repeat(state.lives ?? 0)} />
+      <Pill label="Score" value={score} />
+      <Pill label="Level" value={state.level} />
+      <div style={{ display: "flex", gap: 10, flexWrap: "nowrap" }}>
+        <Pill label="Speed" value={`${state.hazardSpeedMult.toFixed(2)}x`} />
+        <Pill label="Spawn" value={`${state.hazardSpawnEvery.toFixed(2)}s`} />
+      </div>
+    </>
+  );
 
   return (
-    <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
-      <Pill label="Streak Window" value={`${streakRemaining.toFixed(1)}s`} />
-      <Pill label="Streak" value={state.coinStreak} />
-      <Pill label="Coins" value={state.coins.length} />
-      <Pill label="Near Misses" value={state.nearMisses} />
-      <Pill label="Lives" value={"❤️".repeat(state.lives ?? 0)} />
-      <Pill label="Level" value={state.level} />
-      <Pill label="Score" value={score} />
-      <Pill label="High" value={state.highScore} />
-      <div style={{ display: "flex", gap: 14, flexWrap: "nowrap" }}>
-        <Pill label="Spawn" value={`${state.hazardSpawnEvery.toFixed(2)}s`} />
-        <Pill label="Speed" value={`${state.hazardSpeedMult.toFixed(2)}x`} />
-      </div>
+    <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center", overflowX: "auto", paddingBottom: 2 }}>
+      {compact ? primary : null}
+      {!compact ? (
+        <>
+          <Pill label="Streak Window" value={`${streakRemaining.toFixed(1)}s`} />
+          <Pill label="Streak" value={state.coinStreak} />
+          <Pill label="Coins" value={state.coins.length} />
+          <Pill label="Near Misses" value={state.nearMisses} />
+          {primary}
+          <Pill label="High" value={state.highScore} />
+        </>
+      ) : (
+        <>
+          <Pill label="Coins" value={state.coins.length} />
+          <Pill label="Near Misses" value={state.nearMisses} />
+          <Pill label="Streak" value={state.coinStreak} />
+          <Pill label="High" value={state.highScore} />
+          <Pill label="Streak Window" value={`${streakRemaining.toFixed(1)}s`} />
+        </>
+      )}
     </div>
   );
 }
@@ -26,7 +44,7 @@ function Pill({ label, value }) {
   return (
     <div
       style={{
-        padding: "10px 12px",
+        padding: "8px 10px",
         borderRadius: 999,
         background: "rgba(255,255,255,0.06)",
         border: "1px solid rgba(255,255,255,0.10)",

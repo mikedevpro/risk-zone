@@ -16,6 +16,11 @@ export default function App() {
   const isTouch = typeof window !== "undefined" && (
     "ontouchstart" in window || navigator.maxTouchPoints > 0
   );
+  const [viewportW, setViewportW] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 1024
+  );
+  const isSmall = viewportW < 760;
+  const isTiny = viewportW < 430;
   const [playerName, setPlayerName] = useState(
     () => localStorage.getItem("riskzone_name") || "Mike"
   );
@@ -25,6 +30,14 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem("riskzone_name", playerName);
   }, [playerName]);
+
+  useEffect(() => {
+    function onResize() {
+      setViewportW(window.innerWidth);
+    }
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   useEffect(() => {
     fetchLeaderboard(10)
@@ -99,20 +112,20 @@ export default function App() {
         background: "radial-gradient(1200px 600px at 20% 10%, #162c5a 0%, #070b14 55%, #05060a 100%)",
         display: "grid",
         placeItems: "center",
-        padding: "clamp(12px, 3vw, 20px)",
+        padding: "max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left))",
         overscrollBehavior: "none",
       }}
     >
       <div style={{ width: "min(980px, 100vw)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 14, alignItems: "center" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 14, alignItems: isSmall ? "flex-start" : "center", flexWrap: "wrap" }}>
           <div style={{ color: "white" }}>
-            <div style={{ fontSize: 26, fontWeight: 900, letterSpacing: -0.6 }}>Risk Zone</div>
+            <div style={{ fontSize: isTiny ? 22 : 26, fontWeight: 900, letterSpacing: -0.6 }}>Risk Zone</div>
             <div style={{ opacity: 0.75, marginTop: 2, fontSize: 13 }}>
               Move with <b>WASD</b> / <b>Arrow keys</b>. Avoid red hazards. Survive.
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end", width: isSmall ? "100%" : "auto" }}>
             <input
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
@@ -121,7 +134,7 @@ export default function App() {
               style={{
                 height: 36,
                 padding: "0 10px",
-                marginRight: 75,
+                width: isSmall ? "100%" : 170,
                 borderRadius: 10,
                 border: "1px solid rgba(255,255,255,0.16)",
                 background: "rgba(0,0,0,0.18)",
@@ -150,10 +163,10 @@ export default function App() {
         </div>
 
         <div style={{ marginTop: 14 }}>
-          <HUD state={state} />
+          <HUD state={state} compact={isTiny} />
         </div>
 
-        <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap", justifyContent: isTiny ? "space-between" : "flex-start" }}>
           {CHARACTERS.map((c) => {
             const active = (state.characterId || "skater") === c.id;
             return (
@@ -163,6 +176,8 @@ export default function App() {
                 style={{
                   ...btnStyle,
                   height: 34,
+                  minWidth: isTiny ? "calc(50% - 4px)" : "auto",
+                  padding: isTiny ? "0 8px" : "0 12px",
                   background: active ? c.color : "rgba(255,255,255,0.08)",
                   border: active ? "1px solid rgba(255,255,255,0.55)" : "1px solid rgba(255,255,255,0.16)",
                   color: active ? "#07111f" : "white",
@@ -191,9 +206,10 @@ export default function App() {
               level={state.level}
             />
           )}
+
+          {isTouch && state.status === "playing" && <TouchControls setInput={setInput} />}
         </div>
 
-        {isTouch && <TouchControls setInput={setInput} />}
         <Leaderboard items={serverBoard.length ? serverBoard : state.leaderboard} />
         <div style={{ marginTop: 8, opacity: 0.7, color: "white", fontSize: 12 }}>
           {apiStatus === "ok" ? "Global leaderboard connected ✅" : "Global leaderboard offline — showing local results"}

@@ -67,9 +67,9 @@ export default function TouchControls({ setInput }) {
         style={{
           position: "absolute",
           left: 0,
-          bottom: 0,
+          bottom: "max(0px, env(safe-area-inset-bottom))",
           width: "50vw",
-          height: "60vh",
+          height: "58%",
           pointerEvents: "auto",
           touchAction: "none",
           background: "transparent",
@@ -90,9 +90,9 @@ export default function TouchControls({ setInput }) {
         style={{
           position: "absolute",
           right: 0,
-          bottom: 0,
+          bottom: "max(0px, env(safe-area-inset-bottom))",
           width: "50vw",
-          height: "60vh",
+          height: "58%",
           pointerEvents: "auto",
           touchAction: "none",
           background: "transparent",
