@@ -14,8 +14,10 @@ export default function HUD({ state }) {
       <Pill label="Level" value={state.level} />
       <Pill label="Score" value={score} />
       <Pill label="High" value={state.highScore} />
-      <Pill label="Spawn" value={`${state.hazardSpawnEvery.toFixed(2)}s`} />
-      <Pill label="Speed" value={`${state.hazardSpeedMult.toFixed(2)}x`} />
+      <div style={{ display: "flex", gap: 14, flexWrap: "nowrap" }}>
+        <Pill label="Spawn" value={`${state.hazardSpawnEvery.toFixed(2)}s`} />
+        <Pill label="Speed" value={`${state.hazardSpeedMult.toFixed(2)}x`} />
+      </div>
     </div>
   );
 }

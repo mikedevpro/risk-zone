@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import GameCanvas from "./components/GameCanvas";
 import HUD from "./components/HUD";
 import Overlay from "./components/Overlay";
+import StartScreen from "./components/StartScreen";
+import GameOverScreen from "./components/GameOverScreen";
 import { useGameEngine } from "./game/useGameEngine";
 import TouchControls from "./components/TouchControls";
 import Leaderboard from "./components/Leaderboard";
@@ -119,6 +121,7 @@ export default function App() {
               style={{
                 height: 36,
                 padding: "0 10px",
+                marginRight: 75,
                 borderRadius: 10,
                 border: "1px solid rgba(255,255,255,0.16)",
                 background: "rgba(0,0,0,0.18)",
@@ -127,20 +130,23 @@ export default function App() {
                 outline: "none",
               }}
             />
-            <button onClick={start} style={btnPrimary}>
-              {state.status === "playing" ? "Restart" : "Start"}
-            </button>
-
-            {state.status === "playing" && (
-              <button onClick={togglePause} style={btnStyle}>
-                {state.paused ? "Resume" : "Pause"}
-              </button>
-            )}
-
-            <button onClick={toggleMute} style={btnStyle}>
-              {state.muted ? "Unmute" : "Mute"}
-            </button>
           </div>
+        </div>
+
+        <div style={{ marginTop: 12, display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
+          <button onClick={start} style={btnPrimary}>
+            {state.status === "playing" ? "Restart" : "Start"}
+          </button>
+
+          {state.status === "playing" && (
+            <button onClick={togglePause} style={btnStyle}>
+              {state.paused ? "Resume" : "Pause"}
+            </button>
+          )}
+
+          <button onClick={toggleMute} style={btnStyle}>
+            {state.muted ? "Unmute" : "Mute"}
+          </button>
         </div>
 
         <div style={{ marginTop: 14 }}>
@@ -171,23 +177,18 @@ export default function App() {
         <div style={{ position: "relative", marginTop: 14, touchAction: "none", width: "100%" }}>
           <GameCanvas state={state} />
 
-          {state.status === "ready" && (
-            <Overlay
-              title="Press Space to Start"
-              subtitle="Dodge incoming hazards. Difficulty ramps quickly — stay calm."
-              cta="Tip: small movements beat panicking. Space / Enter starts."
-            />
-          )}
+          {state.status === "ready" && <StartScreen />}
 
           {state.status === "playing" && state.paused && (
             <Overlay title="Paused" subtitle="Tap Resume or press P." cta="Stay sharp." />
           )}
 
           {state.status === "gameover" && (
-            <Overlay
-              title="Game Over"
-              subtitle={`Final score: ${state.score} • High score: ${state.highScore}`}
-              cta="Press Space / Enter to play again."
+            <GameOverScreen
+              score={state.score}
+              highScore={state.highScore}
+              lives={state.lives}
+              level={state.level}
             />
           )}
         </div>
