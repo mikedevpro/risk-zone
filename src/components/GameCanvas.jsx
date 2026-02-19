@@ -290,7 +290,7 @@ export default function GameCanvas({ state }) {
       ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
       ctx.globalAlpha = 1;
     }
-  }, [state]);
+  }, [state, playerColor]);
 
     
   return (

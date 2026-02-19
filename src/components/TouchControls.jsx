@@ -24,10 +24,6 @@ export default function TouchControls({ setInput }) {
     const dead = 10;    // deadzone
 
     function setFromVec(dx, dy) {
-      const mag = Math.hypot(dx, dy);
-      const nx = mag ? dx / mag : 0;
-      const ny = mag ? dy / mag : 0;
-
       // map to booleans
       setInput({
         left: dx < -dead,
@@ -54,7 +50,7 @@ export default function TouchControls({ setInput }) {
       setFromVec(clampedDx, clampedDy);
     }
 
-    function onPointerUp(e) {
+    function onPointerUp() {
       setActive(false);
       setInput({ left: false, right: false, up: false, down: false });
     }
