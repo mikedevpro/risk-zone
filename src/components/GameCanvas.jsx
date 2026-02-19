@@ -312,7 +312,7 @@ export default function GameCanvas({ state, fullscreen = false }) {
       width={CANVAS_W}
       height={CANVAS_H}
       style={{
-        width: fullscreen ? "min(100vw, calc(100vh * 1.6667))" : "100%",
+        width: fullscreen ? "min(100vw, calc(100vh * 1.6667))" : "min(100%, 900px)",
         maxWidth: fullscreen ? "100vw" : CANVAS_W,
         height: "auto",
         maxHeight: fullscreen ? "100vh" : "70vh",
@@ -321,6 +321,7 @@ export default function GameCanvas({ state, fullscreen = false }) {
         border: "1px solid rgba(255,255,255,0.12)",
         boxShadow: "0 10px 30px rgba(0,0,0,0.35)",
         display: "block",
+        margin: "0 auto",
         touchAction: "none",
       }}
     />
