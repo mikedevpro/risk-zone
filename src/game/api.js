@@ -6,16 +6,13 @@ export async function fetchLeaderboard(limit = 10) {
   return res.json();
 }
 
-export async function submitScore({ name, score, level, character }, limit = 10) {
-  const res = await fetch(`${API_BASE}/score?limit=${limit}`, {
+export async function submitScore({ name, score, level, character }) {
+  const res = await fetch(`${API_BASE}/score`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, score, level, character }),
   });
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(text || "Failed to submit score");
-  }
+  if (!res.ok) throw new Error("Failed to submit score");
   return res.json();
 }
