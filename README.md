@@ -10,27 +10,27 @@ Players dodge dynamically spawning hazards inside a camera-follow arena, survive
 
 ## ✨ Features
 
-🎯 Real-time collision detection
+- 🎯 Real-time collision detection
 
-🌌 Camera-follow world rendering
+- 🌌 Camera-follow world rendering
 
-✨ Parallax starfield
+- ✨ Parallax starfield
 
-🧠 Dynamic difficulty ramp
+- 🧠 Dynamic difficulty ramp
 
-👑 Boss waves every 5 levels
+- 👑 Boss waves every 5 levels
 
-💥 Multiple hazard types (Normal, Charger, Spiral)
+- 💥 Multiple hazard types (Normal, Charger, Spiral)
 
-❤️ Extra lives + invincibility frames
+- ❤️ Extra lives + invincibility frames
 
-⚡ Overdrive mode (streak-based power state)
+- ⚡ Overdrive mode (streak-based power state)
 
-📱 Mobile + desktop controls
+- 📱 Mobile + desktop controls
 
-🏆 Persistent global leaderboard (FastAPI + SQLite)
+- 🏆 Persistent global leaderboard (FastAPI + SQLite)
 
-🚀 Deployed on Vercel + Render
+- 🚀 Deployed on Vercel + Render
 
 # 🧠 Architecture
 
@@ -46,35 +46,35 @@ State-driven animation system
 
 ## Backend:
 
-FastAPI
+- FastAPI
 
-SQLAlchemy
+- SQLAlchemy
 
-SQLite (persistent storage)
+- SQLite (persistent storage)
 
-RESTful leaderboard endpoints
+- RESTful leaderboard endpoints
 
 ## Deployment:
 
-Vercel (frontend)
+- Vercel (frontend)
 
-Render (backend)
+- Render (backend)
 
 ## ⚙️ Technical Highlights
 
-World-space rendering with camera translation
+- World-space rendering with camera translation
 
-DevicePixelRatio scaling for crisp visuals
+- DevicePixelRatio scaling for crisp visuals
 
-Server-side score validation
+- Server-side score validation
 
-CORS-secured cross-origin API
+- CORS-secured cross-origin API
 
-Modular hazard behavior system
+- Modular hazard behavior system
 
-Stateful difficulty engine
+- Stateful difficulty engine
 
-Deterministic spawn patterns
+- Deterministic spawn patterns
 
 ## 🏗 System Flow
 
@@ -86,25 +86,25 @@ React Game Engine
 
 ## 📈 What I Focused On
 
-Clean separation of rendering and simulation logic
+- Clean separation of rendering and simulation logic
 
-Incremental feature layering without breaking core loop
+- Incremental feature layering without breaking core loop
 
-Responsive cross-device gameplay
+- Responsive cross-device gameplay
 
-Production deployment pipeline
+- Production deployment pipeline
 
 ## 🔮 Future Enhancements
 
-Persistent user accounts
+- Persistent user accounts
 
-WebSocket live leaderboard
+- WebSocket live leaderboard
 
-Audio engine
+- Audio engine
 
-Additional boss mechanics
+- Additional boss mechanics
 
-Replay system
+- Replay system
 
 ## 🎥 Demo
 
