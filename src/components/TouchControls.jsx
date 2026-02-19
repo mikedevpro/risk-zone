@@ -3,7 +3,18 @@ import { useEffect, useRef, useState } from "react";
 export default function TouchControls({ setInput }) {
   const stickRef = useRef(null);
   const [active, setActive] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(
+    typeof window !== "undefined" ? window.innerWidth > window.innerHeight : false
+  );
   const origin = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    function onResize() {
+      setIsLandscape(window.innerWidth > window.innerHeight);
+    }
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   useEffect(() => {
     const el = stickRef.current;
@@ -69,7 +80,7 @@ export default function TouchControls({ setInput }) {
           left: 0,
           bottom: "max(0px, env(safe-area-inset-bottom))",
           width: "50vw",
-          height: "58%",
+          height: isLandscape ? "52%" : "58%",
           pointerEvents: "auto",
           touchAction: "none",
           background: "transparent",
@@ -92,7 +103,7 @@ export default function TouchControls({ setInput }) {
           right: 0,
           bottom: "max(0px, env(safe-area-inset-bottom))",
           width: "50vw",
-          height: "58%",
+          height: isLandscape ? "52%" : "58%",
           pointerEvents: "auto",
           touchAction: "none",
           background: "transparent",

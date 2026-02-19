@@ -15,6 +15,8 @@ export default function GameOverScreen({ score = 0, highScore = 0, lives = 0, le
         style={{
           width: "min(680px, 94%)",
           padding: "clamp(14px, 3vw, 20px) clamp(14px, 3.2vw, 22px)",
+          maxHeight: "85%",
+          overflowY: "auto",
           borderRadius: 16,
           background: "rgba(18,6,10,0.72)",
           border: "1px solid rgba(255,255,255,0.16)",
@@ -23,7 +25,7 @@ export default function GameOverScreen({ score = 0, highScore = 0, lives = 0, le
           textAlign: "center",
         }}
       >
-        <div style={{ fontSize: 34, fontWeight: 900, letterSpacing: -0.7 }}>Game Over</div>
+        <div style={{ fontSize: "clamp(24px, 5vw, 34px)", fontWeight: 900, letterSpacing: -0.7 }}>Game Over</div>
         <div style={{ marginTop: 8, opacity: 0.9 }}>You lasted until Level {level}.</div>
 
         <div
@@ -31,7 +33,7 @@ export default function GameOverScreen({ score = 0, highScore = 0, lives = 0, le
             marginTop: 14,
             display: "grid",
             gap: 6,
-            fontSize: 15,
+            fontSize: "clamp(12px, 2.5vw, 15px)",
           }}
         >
           <div>
