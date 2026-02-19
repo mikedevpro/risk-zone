@@ -1,5 +1,3 @@
-console.log("VITE_API_URL =", import.meta.env.VITE_API_URL);
-
 import { useEffect, useState } from "react";
 import GameCanvas from "./components/GameCanvas";
 import HUD from "./components/HUD";
