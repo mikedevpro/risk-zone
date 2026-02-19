@@ -32,9 +32,9 @@ Players dodge dynamically spawning hazards inside a camera-follow arena, survive
 
 🚀 Deployed on Vercel + Render
 
-## 🧠 Architecture
+# 🧠 Architecture
 
-# Frontend:
+## Frontend:
 
 React
 
@@ -44,7 +44,7 @@ Custom game engine loop
 
 State-driven animation system
 
-# Backend:
+## Backend:
 
 FastAPI
 
@@ -54,7 +54,7 @@ SQLite (persistent storage)
 
 RESTful leaderboard endpoints
 
-# Deployment:
+## Deployment:
 
 Vercel (frontend)
 
