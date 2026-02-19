@@ -32,7 +32,7 @@ Players dodge dynamically spawning hazards inside a camera-follow arena, survive
 
 - 🚀 Deployed on Vercel + Render
 
-# 🏗 System Architecture
+## 🏗 System Architecture
 
                ┌───────────────────────┐
                │       Player          │
