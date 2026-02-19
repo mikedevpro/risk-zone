@@ -1,14 +1,14 @@
-🎮 Risk Zone
+# 🎮 Risk Zone
 
 Risk Zone is a full-stack, real-time arcade survival game built with React (Canvas API) and FastAPI.
 
 Players dodge dynamically spawning hazards inside a camera-follow arena, survive escalating levels, defeat boss waves, collect streak-based bonuses, and compete on a persistent global leaderboard.
 
-🔗 Live Demo: https://risk-zone.vercel.app
+## 🔗 Live Demo: https://risk-zone.vercel.app
 
-🌐 Backend API: https://riskzone-api.onrender.com
+## 🌐 Backend API: https://riskzone-api.onrender.com
 
-✨ Features
+## ✨ Features
 
 🎯 Real-time collision detection
 
@@ -32,9 +32,9 @@ Players dodge dynamically spawning hazards inside a camera-follow arena, survive
 
 🚀 Deployed on Vercel + Render
 
-🧠 Architecture
+## 🧠 Architecture
 
-Frontend:
+# Frontend:
 
 React
 
@@ -44,7 +44,7 @@ Custom game engine loop
 
 State-driven animation system
 
-Backend:
+# Backend:
 
 FastAPI
 
@@ -54,13 +54,13 @@ SQLite (persistent storage)
 
 RESTful leaderboard endpoints
 
-Deployment:
+# Deployment:
 
 Vercel (frontend)
 
 Render (backend)
 
-⚙️ Technical Highlights
+## ⚙️ Technical Highlights
 
 World-space rendering with camera translation
 
@@ -76,7 +76,7 @@ Stateful difficulty engine
 
 Deterministic spawn patterns
 
-🏗 System Flow
+## 🏗 System Flow
 
 React Game Engine
 → POST score → FastAPI
@@ -84,7 +84,7 @@ React Game Engine
 → GET leaderboard
 → Display global rankings
 
-📈 What I Focused On
+## 📈 What I Focused On
 
 Clean separation of rendering and simulation logic
 
@@ -94,7 +94,7 @@ Responsive cross-device gameplay
 
 Production deployment pipeline
 
-🔮 Future Enhancements
+## 🔮 Future Enhancements
 
 Persistent user accounts
 
@@ -106,10 +106,10 @@ Additional boss mechanics
 
 Replay system
 
-🎥 Demo
+## 🎥 Demo
 
-(Insert GIF here later)
+(Coming Soon!)
 
-🏁 Version
+## 🏁 Version
 
 v1.0 — Full-Stack Release
