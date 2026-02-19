@@ -274,12 +274,13 @@ export function startGame(state) {
 export function step(state, input, dt) {
   // allow flash/slowmo easing even after gameover
   if (state.status !== "playing") {
-    state.hitFlash = Math.max(0, (state.hitFlash ?? 0) - dt * 3.5);
+    state.hitFlash = Math.max(0, (state.hitFlash ?? 0) - dt * 0.5);
     const ts = state.timeScale ?? 1;
     state.timeScale = ts + (1 - ts) * Math.min(1, dt * 8);
     return state;
   }
 
+  state.hitFlash = Math.max(0, (state.hitFlash ?? 0) - dt * 0.5);
   const t = dt * (state.timeScale ?? 1);
 
   if (state.paused) return state;
