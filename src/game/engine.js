@@ -45,6 +45,10 @@ import {
   SPIRAL_TURN_RATE,
   START_LIVES,
   IFRAME_TIME,
+  OVERDRIVE_STREAK,
+  OVERDRIVE_TIME,
+  OVERDRIVE_SPEED_MULT,
+  OVERDRIVE_SCORE_MULT,
 } from "./constants";
 
 export function clamp(v, min, max) {
@@ -81,6 +85,7 @@ export function makeInitialState() {
     score: 0,
     highScore: getSavedHighScore(),
     characterId: localStorage.getItem("riskzone_char") || "skater",
+    overdrive: 0,
     timeScale: 1,
     hitFlash: 0,
     screenShake: 0,
@@ -287,10 +292,12 @@ export function step(state, input, dt) {
 
   // timers
   state.timeAlive += t;
-  state.score += t; // +1 per sec alive
+  const mult = state.overdrive > 0 ? OVERDRIVE_SCORE_MULT : 1;
+  state.score += t * mult;
   state._spawnTimer += t;
   state._rampTimer += t;
   state._levelTimer += t;
+  state.overdrive = Math.max(0, state.overdrive - t);
   state._iframes = Math.max(0, (state._iframes ?? 0) - t);
   state.screenShake = Math.max(0, (state.screenShake ?? 0) - 30 * t);
 
@@ -394,8 +401,9 @@ export function step(state, input, dt) {
     p.x += p._dashDir.x * p.dashSpeed * t;
     p.y += p._dashDir.y * p.dashSpeed * t;
   } else {
-    p.x += ix * p.speed * t;
-    p.y += iy * p.speed * t;
+    const speedBoost = state.overdrive > 0 ? OVERDRIVE_SPEED_MULT : 1;
+    p.x += ix * p.speed * speedBoost * t;
+    p.y += iy * p.speed * speedBoost * t;
   }
 
   // clamp to arena
@@ -517,6 +525,9 @@ export function step(state, input, dt) {
 
       // streak logic
       state.coinStreak += 1;
+      if (state.coinStreak >= OVERDRIVE_STREAK) {
+        state.overdrive = OVERDRIVE_TIME;
+      }
       state._streakTimer = 0;
       playCoin(state.coinStreak);
 

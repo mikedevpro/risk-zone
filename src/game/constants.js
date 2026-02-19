@@ -56,3 +56,8 @@ export const SPIRAL_TURN_RATE = 1.35; // radians/sec (try 1.0–1.8)
 
 export const START_LIVES = 4;     // try 2 or 3
 export const IFRAME_TIME = 5;  // seconds of invulnerability after hit
+
+export const OVERDRIVE_STREAK = 6;
+export const OVERDRIVE_TIME = 5; // seconds
+export const OVERDRIVE_SPEED_MULT = 1.25;
+export const OVERDRIVE_SCORE_MULT = 1.5;

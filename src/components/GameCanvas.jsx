@@ -246,6 +246,16 @@ export default function GameCanvas({ state }) {
       ctx.restore();
     }
 
+    if (state.overdrive > 0) {
+      ctx.save();
+      ctx.globalAlpha = 0.25;
+      ctx.fillStyle = "#00ffff";
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r + 18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
     const inv = (state._iframes ?? 0) > 0;
     if (inv && Math.floor((state.timeAlive || 0) * 18) % 2 === 0) {
       // skip drawing player every other frame (blink)

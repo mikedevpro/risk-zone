@@ -1,63 +1,115 @@
-# RiskZone 🎮
+🎮 Risk Zone
 
-A real-time survival / dodge game built with **React + HTML5 Canvas**.  
-Survive as long as you can while hazards spawn faster and move quicker over time.
+Risk Zone is a full-stack, real-time arcade survival game built with React (Canvas API) and FastAPI.
 
-## Live Demo
-- https://risk-zone.vercel.app/
+Players dodge dynamically spawning hazards inside a camera-follow arena, survive escalating levels, defeat boss waves, collect streak-based bonuses, and compete on a persistent global leaderboard.
 
-## Controls
-- **Move:** WASD / Arrow Keys
-- **Pause:** P or Esc
-- **Mute:** M
-- **Restart:** R
-- **Start:** Space / Enter
+🔗 Live Demo: https://risk-zone.vercel.app
 
-## Features
-- Real-time game loop (requestAnimationFrame)
-- Dynamic hazard spawning + difficulty scaling
-- Collision detection (circle math)
-- Score/time survived tracking
-- Pause + mute toggles
+🌐 Backend API: https://riskzone-api.onrender.com
 
-## Tech Stack
-- React + Vite
-- HTML5 Canvas
-- JavaScript (or TypeScript if you migrate later)
+✨ Features
 
-## What I focused on
-This project was built to practice **real-time systems thinking** beyond CRUD apps:
-- game loop architecture (update → render)
-- input handling
-- collision math
-- difficulty scaling
-- performance-friendly patterns
+🎯 Real-time collision detection
 
-## Local Development
-```bash
-npm install
-npm run dev
+🌌 Camera-follow world rendering
 
+✨ Parallax starfield
 
----
+🧠 Dynamic difficulty ramp
 
-### 2) PLAY.md (quick guide)
+👑 Boss waves every 5 levels
 
-```md
-# How to Play RiskZone
+💥 Multiple hazard types (Normal, Charger, Spiral)
 
-**Goal:** Survive as long as possible. Hazards become more intense over time.
+❤️ Extra lives + invincibility frames
 
-## Controls
-- Move: WASD / Arrow Keys
-- Pause: P or Esc
-- Mute: M
-- Restart: R
-- Start: Space / Enter
+⚡ Overdrive mode (streak-based power state)
 
-## Tips
-- Small movements beat big panic moves.
-- Watch spawn patterns; don’t get cornered.
-- Near-misses are safer than wide dodges (once you get comfortable).
+📱 Mobile + desktop controls
 
-![RiskZone gameplay](docs/riskzone.gif)
+🏆 Persistent global leaderboard (FastAPI + SQLite)
+
+🚀 Deployed on Vercel + Render
+
+🧠 Architecture
+
+Frontend:
+
+React
+
+Canvas API
+
+Custom game engine loop
+
+State-driven animation system
+
+Backend:
+
+FastAPI
+
+SQLAlchemy
+
+SQLite (persistent storage)
+
+RESTful leaderboard endpoints
+
+Deployment:
+
+Vercel (frontend)
+
+Render (backend)
+
+⚙️ Technical Highlights
+
+World-space rendering with camera translation
+
+DevicePixelRatio scaling for crisp visuals
+
+Server-side score validation
+
+CORS-secured cross-origin API
+
+Modular hazard behavior system
+
+Stateful difficulty engine
+
+Deterministic spawn patterns
+
+🏗 System Flow
+
+React Game Engine
+→ POST score → FastAPI
+→ SQLite database
+→ GET leaderboard
+→ Display global rankings
+
+📈 What I Focused On
+
+Clean separation of rendering and simulation logic
+
+Incremental feature layering without breaking core loop
+
+Responsive cross-device gameplay
+
+Production deployment pipeline
+
+🔮 Future Enhancements
+
+Persistent user accounts
+
+WebSocket live leaderboard
+
+Audio engine
+
+Additional boss mechanics
+
+Replay system
+
+🎥 Demo
+
+(Insert GIF here later)
+
+🏁 Version
+
+v1.0 — Full-Stack Release
