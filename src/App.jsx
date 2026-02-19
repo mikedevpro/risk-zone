@@ -26,6 +26,7 @@ export default function App() {
   );
   const [serverBoard, setServerBoard] = useState([]);
   const [apiStatus, setApiStatus] = useState("idle"); // idle | ok | down
+  const isPlaying = state.status === "playing";
 
   useEffect(() => {
     localStorage.setItem("riskzone_name", playerName);
@@ -146,27 +147,26 @@ export default function App() {
           </div>
         </div>
 
-        <div style={{ marginTop: 12, display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
+        {!isPlaying && (
+          <div style={{ marginTop: 12, display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
           <button onClick={start} style={btnPrimary}>
             {state.status === "playing" ? "Restart" : "Start"}
           </button>
 
-          {state.status === "playing" && (
-            <button onClick={togglePause} style={btnStyle}>
-              {state.paused ? "Resume" : "Pause"}
-            </button>
-          )}
-
           <button onClick={toggleMute} style={btnStyle}>
             {state.muted ? "Unmute" : "Mute"}
           </button>
-        </div>
+          </div>
+        )}
 
-        <div style={{ marginTop: 14 }}>
+        {!isPlaying && (
+          <div style={{ marginTop: 14 }}>
           <HUD state={state} compact={isTiny} />
-        </div>
+          </div>
+        )}
 
-        <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap", justifyContent: isTiny ? "space-between" : "flex-start" }}>
+        {!isPlaying && (
+          <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap", justifyContent: isTiny ? "space-between" : "flex-start" }}>
           {CHARACTERS.map((c) => {
             const active = (state.characterId || "skater") === c.id;
             return (
@@ -187,10 +187,53 @@ export default function App() {
               </button>
             );
           })}
-        </div>
+          </div>
+        )}
 
-        <div style={{ position: "relative", marginTop: 14, touchAction: "none", width: "100%" }}>
-          <GameCanvas state={state} />
+        <div
+          style={
+            isPlaying
+              ? {
+                  position: "fixed",
+                  inset: 0,
+                  width: "100vw",
+                  display: "grid",
+                  placeItems: "center",
+                  zIndex: 20,
+                  touchAction: "none",
+                  background: "radial-gradient(1200px 700px at 50% 20%, #102448 0%, #080e1a 65%, #05060a 100%)",
+                }
+              : { position: "relative", marginTop: 14, touchAction: "none", width: "100%" }
+          }
+        >
+          <GameCanvas state={state} fullscreen={isPlaying} />
+
+          {isPlaying && (
+            <div
+              style={{
+                position: "absolute",
+                top: "max(10px, env(safe-area-inset-top))",
+                left: "50%",
+                transform: "translateX(-50%)",
+                display: "flex",
+                gap: 8,
+                flexWrap: "wrap",
+                justifyContent: "center",
+                zIndex: 30,
+                pointerEvents: "auto",
+              }}
+            >
+              <button onClick={togglePause} style={btnStyle}>
+                {state.paused ? "Resume" : "Pause"}
+              </button>
+              <button onClick={toggleMute} style={btnStyle}>
+                {state.muted ? "Unmute" : "Mute"}
+              </button>
+              <button onClick={start} style={btnPrimary}>
+                Restart
+              </button>
+            </div>
+          )}
 
           {state.status === "ready" && <StartScreen />}
 
@@ -210,10 +253,14 @@ export default function App() {
           {isTouch && state.status === "playing" && <TouchControls setInput={setInput} />}
         </div>
 
-        <Leaderboard items={serverBoard.length ? serverBoard : state.leaderboard} />
-        <div style={{ marginTop: 8, opacity: 0.7, color: "white", fontSize: 12 }}>
-          {apiStatus === "ok" ? "Global leaderboard connected ✅" : "Global leaderboard offline — showing local results"}
-        </div>
+        {state.status === "gameover" && (
+          <>
+            <Leaderboard items={serverBoard.length ? serverBoard : state.leaderboard} />
+            <div style={{ marginTop: 8, opacity: 0.7, color: "white", fontSize: 12 }}>
+              {apiStatus === "ok" ? "Global leaderboard connected ✅" : "Global leaderboard offline — showing local results"}
+            </div>
+          </>
+        )}
 
         <div style={{
           marginTop: 12,

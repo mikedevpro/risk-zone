@@ -32,6 +32,36 @@ Players dodge dynamically spawning hazards inside a camera-follow arena, survive
 
 - 🚀 Deployed on Vercel + Render
 
+# 🏗 System Architecture
+
+               ┌───────────────────────┐
+               │       Player          │
+               │  (Mobile / Desktop)   │
+               └─────────────┬─────────┘
+                             │
+                             ▼
+               ┌───────────────────────┐
+               │   React Frontend      │
+               │  - Canvas Rendering   │
+               │  - Game Engine Loop   │
+               │  - Camera System      │
+               │  - Difficulty Logic   │
+               └─────────────┬─────────┘
+                             │ REST API
+                             ▼
+               ┌───────────────────────┐
+               │     FastAPI API       │
+               │  - Score Validation   │
+               │  - Leaderboard Logic  │
+               └─────────────┬─────────┘
+                             │
+                             ▼
+               ┌───────────────────────┐
+               │      SQLite DB        │
+               │  - Persistent Scores  │
+               └───────────────────────┘
+
+
 # 🧠 Architecture
 
 ## Frontend:
@@ -54,11 +84,12 @@ Players dodge dynamically spawning hazards inside a camera-follow arena, survive
 
 - RESTful leaderboard endpoints
 
-## Deployment:
+## 📦 Deployment Architecture
 
-- Vercel (frontend)
+- Frontend → Vercel
+- Backend  → Render
+- Database → SQLite (Render instance)
 
-- Render (backend)
 
 ## ⚙️ Technical Highlights
 

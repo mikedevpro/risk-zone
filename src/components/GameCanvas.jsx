@@ -8,9 +8,10 @@ const COLORS = {
   ghost: "#e9a8ff",
 };
 
-export default function GameCanvas({ state }) {
+export default function GameCanvas({ state, fullscreen = false }) {
   const canvasRef = useRef(null);
   const starsRef = useRef(null);
+  const camRef = useRef({ x: 0, y: 0 });
   const playerColor = COLORS[state.characterId] || "#44d7b6";
 
   useEffect(() => {
@@ -50,8 +51,20 @@ export default function GameCanvas({ state }) {
     }
 
     const p = state.player;
-    const camX = Math.max(0, Math.min(WORLD_W - CANVAS_W, p.x - CANVAS_W / 2));
-    const camY = Math.max(0, Math.min(WORLD_H - CANVAS_H, p.y - CANVAS_H / 2));
+    const targetCamX = Math.max(0, Math.min(WORLD_W - CANVAS_W, p.x - CANVAS_W / 2));
+    const targetCamY = Math.max(0, Math.min(WORLD_H - CANVAS_H, p.y - CANVAS_H / 2));
+
+    // Smooth camera follow during active play for less jittery tracking.
+    if (state.status === "playing") {
+      camRef.current.x += (targetCamX - camRef.current.x) * 0.14;
+      camRef.current.y += (targetCamY - camRef.current.y) * 0.14;
+    } else {
+      camRef.current.x = targetCamX;
+      camRef.current.y = targetCamY;
+    }
+
+    const camX = camRef.current.x;
+    const camY = camRef.current.y;
     const camXi = Math.round(camX);
     const camYi = Math.round(camY);
     const shake = state.screenShake ?? 0;
@@ -299,12 +312,12 @@ export default function GameCanvas({ state }) {
       width={CANVAS_W}
       height={CANVAS_H}
       style={{
-        width: "100%",
-        maxWidth: CANVAS_W,
+        width: fullscreen ? "min(100vw, calc(100vh * 1.6667))" : "100%",
+        maxWidth: fullscreen ? "100vw" : CANVAS_W,
         height: "auto",
-        // maxHeight: "70vh",
+        maxHeight: fullscreen ? "100vh" : "70vh",
         aspectRatio: `${CANVAS_W} / ${CANVAS_H}`,
-        borderRadius: 16,
+        borderRadius: fullscreen ? 0 : 16,
         border: "1px solid rgba(255,255,255,0.12)",
         boxShadow: "0 10px 30px rgba(0,0,0,0.35)",
         display: "block",
