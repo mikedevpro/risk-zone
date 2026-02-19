@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_URL || "";
 
 export async function fetchLeaderboard(limit = 10) {
   const res = await fetch(`${API_BASE}/leaderboard?limit=${limit}`);
