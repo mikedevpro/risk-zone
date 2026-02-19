@@ -36,13 +36,13 @@ Players dodge dynamically spawning hazards inside a camera-follow arena, survive
 
 ## Frontend:
 
-React
+- React
 
-Canvas API
+- Canvas API
 
-Custom game engine loop
+- Custom game engine loop
 
-State-driven animation system
+- State-driven animation system
 
 ## Backend:
 
