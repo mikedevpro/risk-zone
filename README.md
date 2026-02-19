@@ -34,7 +34,7 @@ Players dodge dynamically spawning hazards inside a camera-follow arena, survive
 
 # 🧠 Architecture
 
-# Frontend:
+## Frontend:
 
 React
 
