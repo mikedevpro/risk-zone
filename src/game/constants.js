@@ -33,7 +33,7 @@ export const NEAR_MISS_DIST = 12;      // extra pixels beyond collision radius
 export const NEAR_MISS_COOLDOWN = 0.35; // seconds per hazard to avoid spam
 export const NEAR_MISS_POINTS = 3;
 
-export const LEVEL_UP_EVERY = 18; // seconds survived per level
+export const LEVEL_UP_EVERY = 20; // seconds survived per level
 export const LEVEL_MAX = 20;
 export const LEVEL_SPEED_BOOST = 1.07; // per level
 export const LEVEL_SPAWN_BOOST = 0.92; // per level (lower = faster spawns)
@@ -54,5 +54,5 @@ export const SPIRAL_UNLOCK_LEVEL = 6;
 export const SPIRAL_CHANCE = 0.18;
 export const SPIRAL_TURN_RATE = 1.35; // radians/sec (try 1.0–1.8)
 
-export const START_LIVES = 2;     // try 2 or 3
-export const IFRAME_TIME = 1.1;  // seconds of invulnerability after hit
+export const START_LIVES = 4;     // try 2 or 3
+export const IFRAME_TIME = 5;  // seconds of invulnerability after hit
