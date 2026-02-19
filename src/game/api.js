@@ -1,7 +1,7 @@
 const API_BASE =
-  window.__RISKZONE__?.API_BASE ||
+  (typeof window !== "undefined" ? window.__RISKZONE__?.API_BASE : undefined) ||
+  (import.meta?.env?.VITE_API_URL) ||
   "http://localhost:8000";
-console.log(import.meta.env.VITE_API_URL);
 
 export async function fetchLeaderboard(limit = 10) {
   const res = await fetch(`${API_BASE}/leaderboard?limit=${limit}`);
